@@ -1,5 +1,6 @@
 package com.locusmimic.app.manager.ui.map
 
+import android.widget.ImageView
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.snap
@@ -53,6 +54,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -90,6 +92,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -208,6 +211,7 @@ fun MapScreen(
                     onOpenSettings = { showSettingsSheet = true },
                     onClearLocation = { mapViewModel.updateClickedLocation(null) },
                     clearLocationEnabled = isFabClickable,
+                    onShowSponsor = { showSponsorSheet = true },
                     onShowAbout = { showAboutDialog = true },
                     onDismissSearch = dismissSearch,
                     modifier = Modifier
@@ -420,6 +424,7 @@ private fun MapTopControls(
     onOpenSettings: () -> Unit,
     onClearLocation: () -> Unit,
     clearLocationEnabled: Boolean,
+    onShowSponsor: () -> Unit,
     onShowAbout: () -> Unit,
     onDismissSearch: () -> Unit,
     modifier: Modifier = Modifier
@@ -508,6 +513,10 @@ private fun MapTopControls(
                         label = stringResource(R.string.screen_settings)
                     ) { onShowOptionsMenuChange(false); onOpenSettings() }
                     MapOptionsMenuItem(
+                        icon = PrototypeMenuIcon.Sponsor,
+                        label = stringResource(R.string.sponsor_entry_title)
+                    ) { onShowOptionsMenuChange(false); onShowSponsor() }
+                    MapOptionsMenuItem(
                         icon = PrototypeMenuIcon.About,
                         label = stringResource(R.string.screen_about)
                     ) { onShowOptionsMenuChange(false); onShowAbout() }
@@ -554,7 +563,7 @@ private fun MapOptionsMenuItem(
     }
 }
 
-private enum class PrototypeMenuIcon { GoToCoordinate, AddFavorite, ClearLocation, Settings, About }
+private enum class PrototypeMenuIcon { GoToCoordinate, AddFavorite, ClearLocation, Settings, Sponsor, About }
 
 /** Small outlined glyphs redrawn for the prototype instead of reusing mixed Material icons. */
 @Composable
@@ -598,6 +607,19 @@ private fun PrototypeMenuIcon(icon: PrototypeMenuIcon, color: Color, modifier: M
                     drawLine(color, point(4f, y), point(20f, y), strokeWidth = 1.5f * unit)
                     drawCircle(color, radius = 2.1f * unit, center = point(x, y), style = stroke)
                 }
+            }
+            PrototypeMenuIcon.Sponsor -> {
+                val heart = Path().apply {
+                    moveTo(12f * unit, 20.2f * unit)
+                    cubicTo(10f * unit, 18.2f * unit, 4.2f * unit, 14.1f * unit, 4.2f * unit, 9.1f * unit)
+                    cubicTo(4.2f * unit, 5.9f * unit, 6.6f * unit, 3.7f * unit, 9.4f * unit, 3.7f * unit)
+                    cubicTo(10.8f * unit, 3.7f * unit, 11.7f * unit, 4.4f * unit, 12f * unit, 5.1f * unit)
+                    cubicTo(12.3f * unit, 4.4f * unit, 13.2f * unit, 3.7f * unit, 14.6f * unit, 3.7f * unit)
+                    cubicTo(17.4f * unit, 3.7f * unit, 19.8f * unit, 5.9f * unit, 19.8f * unit, 9.1f * unit)
+                    cubicTo(19.8f * unit, 14.1f * unit, 14f * unit, 18.2f * unit, 12f * unit, 20.2f * unit)
+                    close()
+                }
+                drawPath(heart, color, style = stroke)
             }
             PrototypeMenuIcon.About -> {
                 drawCircle(color, radius = 8.6f * unit, center = point(12f, 12f), style = stroke)
@@ -890,16 +912,25 @@ private fun LocusMimicAboutSheet(
     onDismissRequest: () -> Unit,
     onShowSponsor: () -> Unit
 ) {
-    HtmlModalSheet(onDismissRequest, stringResource(R.string.screen_about)) {
+    HtmlModalSheet(
+        onDismissRequest = onDismissRequest,
+        title = stringResource(R.string.screen_about),
+        skipPartiallyExpanded = true
+    ) {
         Surface(
             modifier = Modifier.size(64.dp).align(Alignment.CenterHorizontally),
-            shape = RoundedCornerShape(20.dp),
-            color = Color(0xFFE3F7FC)
+            shape = CircleShape,
+            color = Color.Transparent
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_launcher_foreground),
-                contentDescription = stringResource(R.string.app_name),
-                modifier = Modifier.size(64.dp)
+            AndroidView(
+                factory = { context ->
+                    ImageView(context).apply {
+                        setImageResource(R.mipmap.ic_launcher)
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+                        contentDescription = context.getString(R.string.app_name)
+                    }
+                },
+                modifier = Modifier.fillMaxSize()
             )
         }
         Text(
@@ -949,7 +980,11 @@ private fun LocusMimicAboutSheet(
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun LocusMimicSponsorSheet(onDismissRequest: () -> Unit) {
-    HtmlModalSheet(onDismissRequest, stringResource(R.string.sponsor_title)) {
+    HtmlModalSheet(
+        onDismissRequest = onDismissRequest,
+        title = stringResource(R.string.sponsor_title),
+        skipPartiallyExpanded = true
+    ) {
         Text(
             text = stringResource(R.string.sponsor_dialog_summary),
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 21.sp),
@@ -984,10 +1019,15 @@ private fun LocusMimicSponsorSheet(onDismissRequest: () -> Unit) {
 private fun HtmlModalSheet(
     onDismissRequest: () -> Unit,
     title: String,
+    skipPartiallyExpanded: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = Color(0xFFF5FBFC),
         dragHandle = null

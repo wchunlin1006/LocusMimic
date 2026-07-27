@@ -1,0 +1,12 @@
+# 变更记录
+
+## 1.0.0 — 首次公开发布
+
+- 重新实现更简洁、时尚的地图交互界面，整合地点搜索、收藏、当前位置、位置参数配置与作用应用管理。
+- 将地图服务替换为百度地图 Web 版本，支持地图选点与地点搜索。
+- 整合 HideMockLocation 的部分实现特性，提升本模块在部分反模拟检测较强应用中的位置模拟隐藏性。
+- 提供互斥的应用 Hook、系统 Hook 与 Mock Provider 三种模式。
+
+## 上游说明
+
+本项目在 XposedFakeLocation 的基础上维护，并整合了基于 HideMockLocation 的部分实现思路。早期私人开发记录不作为公开版本历史发布；上游归属与许可证见 [docs/FORK_CHANGES.md](docs/FORK_CHANGES.md) 和 [LICENSE](LICENSE)。

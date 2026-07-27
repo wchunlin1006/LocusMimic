@@ -1,0 +1,94 @@
+name: Build and attach release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Existing GitHub Release tag, for example 10000-1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag }}
+
+      - name: Validate release tag
+        id: version
+        shell: bash
+        run: |
+          tag='${{ inputs.release_tag }}'
+          if [[ ! "$tag" =~ ^([0-9]+)-([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag must use versionCode-versionName, for example 10000-1.0.0."
+            exit 1
+          fi
+          version_code="${BASH_REMATCH[1]}"
+          major="${BASH_REMATCH[2]}"
+          minor="${BASH_REMATCH[3]}"
+          patch="${BASH_REMATCH[4]}"
+          suffix="${BASH_REMATCH[5]}"
+          expected_code=$((10#$major * 10000 + 10#$minor * 100 + 10#$patch))
+          if [[ "$version_code" -ne "$expected_code" ]]; then
+            echo "::error::Tag versionCode ($version_code) does not match $major.$minor.$patch ($expected_code)."
+            exit 1
+          fi
+          echo "version=$major.$minor.$patch$suffix" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Restore signing and map configuration
+        env:
+          KEYSTORE_BASE64: ${{ secrets.LOCUSMIMIC_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.LOCUSMIMIC_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.LOCUSMIMIC_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.LOCUSMIMIC_KEY_PASSWORD }}
+          BAIDU_WEB_AK: ${{ secrets.LOCUSMIMIC_BAIDU_WEB_AK }}
+        shell: bash
+        run: |
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD BAIDU_WEB_AK; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::$name is not configured. See docs/PUBLISHING.md."
+              exit 1
+            fi
+          done
+          mkdir -p keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode > keystore/locusmimic-release.jks
+          cat > keystore.properties <<EOF
+          storeFile=keystore/locusmimic-release.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+          printf 'BAIDU_WEB_AK=%s\n' "$BAIDU_WEB_AK" > local.properties
+
+      - name: Build release APK
+        run: ./gradlew --no-daemon :app:assembleRelease -PappVersionName="${{ steps.version.outputs.version }}"
+
+      - name: Locate APK
+        id: apk
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(app/build/outputs/apk/release/LocusMimic-${{ steps.version.outputs.version }}-*.apk)
+          if [[ "${#files[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one versioned release APK, found ${#files[@]}."
+            exit 1
+          fi
+          echo "path=${files[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK to existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ inputs.release_tag }}" "${{ steps.apk.outputs.path }}" --clobber

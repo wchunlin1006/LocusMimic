@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>LocusMimic Map</title>
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #f4faf8;
+        }
+        .anchorBL { display: block !important; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    (() => {
+        'use strict';
+
+        let map = null;
+        let selectedMarker = null;
+        let userMarker = null;
+        let geocoder = null;
+        let searchCity = '';
+        const pending = [];
+
+        const callAndroid = (method, ...args) => {
+            try {
+                if (window.AndroidMap && typeof window.AndroidMap[method] === 'function') {
+                    window.AndroidMap[method](...args);
+                }
+            } catch (_) {
+                // The native side may already have destroyed the WebView.
+            }
+        };
+
+        const withMap = action => {
+            if (map) action(); else pending.push(action);
+        };
+
+        const point = (latitude, longitude) => new BMap.Point(longitude, latitude);
+
+        const markerIcon = () => {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewBox="0 0 40 48">
+                <path fill="#1677ff" stroke="#ffffff" stroke-width="2" d="M20 1C9.5 1 1 9.5 1 20c0 14.3 19 27 19 27s19-12.7 19-27C39 9.5 30.5 1 20 1z"/>
+                <circle cx="20" cy="20" r="7" fill="#ffffff"/>
+                <circle cx="20" cy="20" r="3" fill="#1677ff"/>
+            </svg>`;
+            return new BMap.Icon(
+                'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                new BMap.Size(40, 48),
+                { anchor: new BMap.Size(20, 47), imageSize: new BMap.Size(40, 48) }
+            );
+        };
+
+        const userIcon = () => {
+            // The accuracy indicator intentionally lives inside the SVG instead of using
+            // BMap.Circle. Baidu renders a geographic circle as a polygon in WebView, which
+            // makes a small circle look jagged and changes its on-screen radius with zoom.
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="27" fill="#1677ff" fill-opacity=".12" stroke="#1677ff" stroke-width="1.2" stroke-opacity=".35"/>
+                <circle cx="32" cy="32" r="10" fill="#ffffff" fill-opacity=".96"/>
+                <circle cx="32" cy="32" r="7" fill="#1677ff"/>
+                <circle cx="32" cy="32" r="2.5" fill="#ffffff"/>
+            </svg>`;
+            return new BMap.Icon(
+                'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                new BMap.Size(64, 64),
+                { anchor: new BMap.Size(32, 32), imageSize: new BMap.Size(64, 64) }
+            );
+        };
+
+        window.TraceMap = {
+            center(latitude, longitude, zoom) {
+                withMap(() => map.panTo(point(latitude, longitude), { noAnimation: false }));
+                withMap(() => map.setZoom(Number(zoom)));
+            },
+
+            setSelectedLocation(latitude, longitude) {
+                withMap(() => {
+                    if (selectedMarker) map.removeOverlay(selectedMarker);
+                    selectedMarker = new BMap.Marker(point(latitude, longitude), { icon: markerIcon() });
+                    map.addOverlay(selectedMarker);
+                });
+            },
+
+            clearSelectedLocation() {
+                withMap(() => {
+                    if (selectedMarker) map.removeOverlay(selectedMarker);
+                    selectedMarker = null;
+                });
+            },
+
+            showUserLocation(latitude, longitude, accuracy) {
+                withMap(() => {
+                    if (userMarker) map.removeOverlay(userMarker);
+                    const location = point(latitude, longitude);
+                    userMarker = new BMap.Marker(location, { icon: userIcon() });
+                    map.addOverlay(userMarker);
+                });
+            },
+
+            search(query) {
+                withMap(() => {
+                    const requestedQuery = String(query || '').trim();
+                    if (!requestedQuery) {
+                        callAndroid('onSearchResults', requestedQuery, '[]', true);
+                        return;
+                    }
+                    let localSearch = null;
+                    const options = {
+                        pageCapacity: 5,
+                        onSearchComplete: result => {
+                            const success = localSearch && localSearch.getStatus() === BMAP_STATUS_SUCCESS;
+                            const results = [];
+                            if (success && result) {
+                                const count = Math.min(5, result.getCurrentNumPois());
+                                for (let index = 0; index < count; index += 1) {
+                                    const poi = result.getPoi(index);
+                                    if (!poi || !poi.point) continue;
+                                    results.push({
+                                        name: poi.title || requestedQuery,
+                                        address: poi.address || '',
+                                        latitude: poi.point.lat,
+                                        longitude: poi.point.lng
+                                    });
+                                }
+                            }
+                            callAndroid('onSearchResults', requestedQuery, JSON.stringify(results), Boolean(success));
+                            localSearch = null;
+                        }
+                    };
+                    localSearch = new BMap.LocalSearch(searchCity || map, options);
+                    localSearch.setPageCapacity(5);
+                    localSearch.search(requestedQuery);
+                });
+            },
+
+            reverseGeocode(wgsLatitude, wgsLongitude, bdLatitude, bdLongitude) {
+                withMap(() => {
+                    geocoder = geocoder || new BMap.Geocoder();
+                    geocoder.getLocation(
+                        point(bdLatitude, bdLongitude),
+                        result => {
+                            if (!result) {
+                                callAndroid('onReverseGeocodeResult', wgsLatitude, wgsLongitude, '{}', false);
+                                return;
+                            }
+                            const detail = result.addressComponents || {};
+                            if (detail.city) searchCity = detail.city;
+                            const nearby = Array.isArray(result.surroundingPois)
+                                ? result.surroundingPois
+                                : [];
+                            const nearest = nearby.length > 0 ? nearby[0] : null;
+                            const detailedAddress = String(result.address || [
+                                detail.province,
+                                detail.city,
+                                detail.district,
+                                detail.street,
+                                detail.streetNumber
+                            ].filter(Boolean).join(''));
+                            callAndroid(
+                                'onReverseGeocodeResult',
+                                Number(wgsLatitude),
+                                Number(wgsLongitude),
+                                JSON.stringify({
+                                    address: detailedAddress,
+                                    poiTitle: nearest && nearest.title ? nearest.title : '',
+                                    city: detail.city || ''
+                                }),
+                                Boolean(detailedAddress)
+                            );
+                        },
+                        { poiRadius: 500, numPois: 3 }
+                    );
+                });
+            }
+        };
+
+        window.initBaiduTraceMap = () => {
+            try {
+                map = new BMap.Map('map', { enableMapClick: false, minZoom: 3, maxZoom: 20 });
+                map.centerAndZoom(new BMap.Point(0, 0), 3);
+                map.enableDragging();
+                map.enableScrollWheelZoom();
+                map.enableDoubleClickZoom();
+                map.enablePinchToZoom();
+
+                map.addEventListener('click', event => {
+                    if (event && event.point) {
+                        callAndroid('onMapClicked', event.point.lat, event.point.lng);
+                    }
+                });
+                map.addEventListener('movestart', () => callAndroid('onMapInteraction'));
+                map.addEventListener('zoomstart', () => callAndroid('onMapInteraction'));
+                map.addEventListener('zoomend', () => callAndroid('onZoomChanged', map.getZoom()));
+
+                while (pending.length > 0) pending.shift()();
+                callAndroid('onMapReady');
+            } catch (_) {
+                callAndroid('onMapError');
+            }
+        };
+
+        const api = document.createElement('script');
+        api.type = 'text/javascript';
+        api.src = 'https://api.map.baidu.com/api?v=3.0&ak=__BAIDU_WEB_AK__&callback=initBaiduTraceMap';
+        api.onerror = () => callAndroid('onMapError');
+        document.head.appendChild(api);
+    })();
+</script>
+</body>
+</html>

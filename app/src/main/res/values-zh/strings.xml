@@ -1,0 +1,163 @@
+<resources>
+    <string name="app_name">LocusMimic</string>
+
+    <string name="description">面向位置测试的地图工作台</string>
+    <string name="nav_apps">应用</string>
+    <string name="nav_home">主页</string>
+    <string name="nav_settings">设置</string>
+    <string name="about_dialog_summary">　　LocusMimic仅用于合法、已授权的测试、开发调试、学习研究等场景。\n\n　　请勿将本应用用于绕过平台规则、虚假打卡签到、获取不当利益、干扰服务、侵犯他人权益或任何违法违规用途。\n\n　　使用位置模拟前，请确认你对目标设备、账号、应用和使用场景拥有合法授权。你需要自行承担因使用本应用产生的全部责任和后果。</string>
+    <string name="about_version_label">版本</string>
+
+    <string name="language_system">跟随系统</string>
+    <string name="language_english">英语</string>
+    <string name="language_chinese">中文</string>
+
+    <string name="action_ok">确定</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_add">添加</string>
+    <string name="action_delete">删除</string>
+    <string name="action_go">前往</string>
+
+    <string name="disclaimer_title">使用免责声明</string>
+    <string name="disclaimer_body">LocusMimic仅用于合法的测试、开发、设备调试和个人学习。不得将本工具用于绕过平台规则、欺诈、侵犯隐私或任何违法用途。地图展示、地点搜索和逆地理编码由百度地图 JavaScript API 提供，并且只会在你同意后加载。你需要自行承担使用本工具产生的后果。</string>
+    <string name="disclaimer_accept_checkbox">我同意仅用于合法测试，并同意为地图功能加载百度地图 JavaScript API。</string>
+    <string name="disclaimer_confirm">同意并继续</string>
+    <string name="disclaimer_decline">退出应用</string>
+
+    <string name="cd_back">返回</string>
+    <string name="cd_navigate_back">返回上一页</string>
+    <string name="cd_menu">菜单</string>
+    <string name="cd_center">居中</string>
+    <string name="cd_options">选项</string>
+    <string name="cd_play">开始</string>
+    <string name="cd_stop">停止</string>
+    <string name="cd_delete">删除</string>
+    <string name="cd_app_icon">%1$s 图标</string>
+    <string name="cd_search_place">搜索地点</string>
+    <string name="cd_clear_search">清空搜索</string>
+
+    <string name="screen_settings">设置</string>
+    <string name="screen_favorites">收藏</string>
+    <string name="favorites_delete_title">删除收藏？</string>
+    <string name="favorites_delete_message">确定从收藏中删除“%1$s”？</string>
+    <string name="screen_target_apps">作用应用</string>
+    <string name="screen_about">关于</string>
+
+    <string name="drawer_navigation">导航</string>
+    <string name="drawer_app_info">应用信息</string>
+    <string name="drawer_subtitle">轻松模拟你的位置</string>
+    <string name="drawer_version">版本 %1$s</string>
+
+    <string name="category_language">语言</string>
+    <string name="category_notifications">通知</string>
+    <string name="category_external_control">外部控制</string>
+    <string name="category_location_mode">定位模式</string>
+    <string name="category_map_storage">地图存储</string>
+    <string name="setting_map_cache_title">地图缓存</string>
+    <string name="setting_map_cache_description">缓存会一直保留，只有点击下方按钮时才会清理，后台不会自动整理。</string>
+    <string name="setting_map_cache_clear">清理地图缓存</string>
+    <string name="setting_map_cache_cleared">地图缓存已清理</string>
+    <string name="map_load_error">网页地图加载失败，请检查网络和百度浏览器端 AK 白名单。</string>
+    <string name="category_location">位置</string>
+    <string name="category_altitude">海拔</string>
+    <string name="category_movement">移动</string>
+
+    <string name="setting_language_title">应用语言</string>
+    <string name="setting_language_description">选择管理器应用和 Xposed toast 提示使用的语言。</string>
+    <string name="setting_hide_toast_title">隐藏提示</string>
+    <string name="setting_hide_toast_description">禁止在目标应用中显示 toast 提示</string>
+    <string name="setting_external_broadcast_title">允许外部广播控制</string>
+    <string name="setting_external_broadcast_description">允许任何已安装的应用或 ADB shell 通过 intent 开始/停止模拟或设置坐标</string>
+    <string name="location_mode_application_title">应用级 Hook</string>
+    <string name="location_mode_application_description">需要 Root 和 LSPosed，仅对应用列表中选中的应用生效。适合大多数应用，资源占用和耗电量极低。</string>
+    <string name="location_mode_system_title">系统级 Hook</string>
+    <string name="location_mode_system_description">需要 Root 和 LSPosed。在应用级 Hook 基础上，额外处理 Android 系统、框架和电话服务，适用于定位链路特殊或反模拟检测较强的应用。兼容性更强，但在少数设备上可能造成系统定位异常，资源占用和耗电量极低。</string>
+    <string name="location_mode_mock_provider_title">Mock Provider</string>
+    <string name="location_mode_mock_provider_description">不需要 Root 和 LSPosed，但需要先在“开发者选项 → 选择模拟位置信息应用”中选择“LocusMimic”。位置会被系统标记为“模拟位置”，可能被目标应用检测；模拟期间需要保持LocusMimic的后台服务运行，资源占用和耗电量相对较高。</string>
+    <string name="module_inactive_banner">LocusMimic尚未在 LSPosed 中激活，请先启用模块并配置作用域。</string>
+    <string name="system_hooks_module_inactive">模块未激活。请先在 Xposed 管理器中启用LocusMimic并勾选作用域。</string>
+    <string name="system_hooks_scope_required_title">需要配置系统作用域</string>
+    <string name="system_hooks_scope_required_message">请打开 Xposed 管理器，进入“LocusMimic → 作用域”，勾选：%1$s。保存后返回此处再次开启。为保证安全，应用不会自行申请或修改作用域。</string>
+    <string name="setting_more_info">关于 %1$s 的更多信息</string>
+    <string name="setting_disable">关闭 %1$s</string>
+    <string name="setting_enable">开启 %1$s</string>
+    <string name="setting_adjust_value">调整 %1$s 的值</string>
+    <string name="setting_value_display">%1$s：%2$s %3$s</string>
+
+    <string name="setting_randomize_title">随机附近位置</string>
+    <string name="setting_randomize_description">在指定半径内随机放置你的位置</string>
+    <string name="setting_randomize_radius_label">随机半径</string>
+    <string name="setting_horizontal_accuracy_title">自定义水平精度</string>
+    <string name="setting_horizontal_accuracy_description">设置你的位置水平精度</string>
+    <string name="setting_horizontal_accuracy_label">水平精度</string>
+    <string name="setting_vertical_accuracy_title">自定义垂直精度</string>
+    <string name="setting_vertical_accuracy_description">设置你的位置垂直精度</string>
+    <string name="setting_vertical_accuracy_label">垂直精度</string>
+    <string name="setting_altitude_title">自定义海拔</string>
+    <string name="setting_altitude_description">为你的位置设置自定义海拔</string>
+    <string name="setting_altitude_label">海拔</string>
+    <string name="setting_msl_title">自定义平均海平面</string>
+    <string name="setting_msl_description">设置自定义平均海平面值</string>
+    <string name="setting_msl_label">平均海平面</string>
+    <string name="setting_msl_accuracy_title">自定义平均海平面精度</string>
+    <string name="setting_msl_accuracy_description">设置平均海平面值的精度</string>
+    <string name="setting_msl_accuracy_label">平均海平面精度</string>
+    <string name="setting_speed_title">自定义速度</string>
+    <string name="setting_speed_description">为你的位置设置自定义速度</string>
+    <string name="setting_speed_label">速度</string>
+    <string name="setting_speed_accuracy_title">自定义速度精度</string>
+    <string name="setting_speed_accuracy_description">设置速度值的精度</string>
+    <string name="setting_speed_accuracy_label">速度精度</string>
+
+    <string name="map_go_to_point">前往坐标点</string>
+    <string name="map_add_to_favorites">添加到收藏</string>
+    <string name="map_clear_location">清除位置</string>
+    <string name="map_status_active">模拟中</string>
+    <string name="map_status_stopped">已停止</string>
+    <string name="map_status_active_hint">已向选择的应用提供位置</string>
+    <string name="map_status_waiting">从地图选择位置</string>
+    <string name="map_status_hint">在地图上轻点，选择要模拟的位置。</string>
+    <string name="map_status_coordinates">纬度 %1$.6f  经度 %2$.6f</string>
+    <string name="map_status_address">地址：%1$s</string>
+    <string name="map_status_address_loading">正在解析地址...</string>
+    <string name="map_status_address_unavailable">暂时无法解析该坐标的地址。</string>
+    <string name="map_search_placeholder">搜索地点</string>
+    <string name="map_search_empty">请先输入地点名称。</string>
+    <string name="map_search_no_results">没有找到匹配地点。</string>
+    <string name="map_search_error">无法搜索地点，请检查网络后重试。</string>
+    <string name="toast_fake_location_set">已设置虚拟位置</string>
+    <string name="toast_unset_fake_location">已取消虚拟位置</string>
+    <string name="mock_provider_channel_name">Mock Provider 兼容模式</string>
+    <string name="mock_provider_notification_text">Mock Provider 兼容模式正在运行</string>
+    <string name="toast_user_location_not_available">用户位置不可用</string>
+    <string name="map_updating">正在更新地图...</string>
+
+    <string name="field_name">名称</string>
+    <string name="field_latitude">纬度</string>
+    <string name="field_longitude">经度</string>
+    <string name="validation_name_required">请提供名称</string>
+    <string name="validation_latitude_range">纬度必须介于 -90 到 90 之间</string>
+    <string name="validation_longitude_range">经度必须介于 -180 到 180 之间</string>
+    <string name="coordinates_lat_lon">纬度：%1$s，经度：%2$s</string>
+
+    <string name="favorites_empty">还没有添加收藏。</string>
+    <string name="target_apps_search_label">搜索应用或包名</string>
+    <string name="target_apps_selected_count">已选择 %1$d 个</string>
+    <string name="target_apps_show_system_apps">显示系统应用</string>
+    <string name="target_apps_system_framework">系统框架</string>
+    <string name="target_apps_scope_only">LSPosed 作用域（只读）</string>
+    <string name="target_apps_module_inactive">模块未激活。请在 Xposed 管理器中启用LocusMimic以选择目标应用。</string>
+    <string name="target_apps_scope_request_failed">无法更新作用域：%1$s</string>
+    <string name="target_apps_relaunch_cd">重新启动 %1$s</string>
+    <string name="target_apps_relaunching">正在重新启动 %1$s…</string>
+    <string name="target_apps_relaunch_failed">无法重新启动 %1$s。是否已授予 Root 权限？</string>
+    <string name="target_apps_root_required">重新启动目标应用需要LocusMimic拥有 Root 权限。请在您的 Root 管理器中授予该权限。</string>
+
+    <string name="permissions_activity_error">错误：无法访问 Activity。</string>
+    <string name="permissions_required">使用此应用需要授予权限</string>
+    <string name="permissions_grant">授予权限</string>
+    <string name="permissions_permanently_denied">你已永久拒绝位置权限。请前往设置启用权限并重启应用。</string>
+    <string name="permissions_open_settings">打开设置</string>
+
+    <string name="about_description">LocusMimic仅用于合法、已授权的测试、开发调试、学习研究等场景。\n\n请勿将本应用用于绕过平台规则、虚假打卡签到、获取不当利益、干扰服务、侵犯他人权益或任何违法违规用途。\n\n使用位置模拟前，请确认你对目标设备、账号、应用和使用场景拥有合法授权。你需要自行承担因使用本应用产生的全部责任和后果。</string>
+</resources>

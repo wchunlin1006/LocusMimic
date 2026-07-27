@@ -1,0 +1,163 @@
+<resources>
+    <string name="app_name">LocusMimic</string>
+
+    <string name="description">a map-first location testing workspace</string>
+    <string name="nav_apps">Apps</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_settings">Settings</string>
+    <string name="about_dialog_summary">LocusMimic is only for lawful, authorized testing, development, debugging, and learning.\n\nDo not use this app to bypass platform rules, falsify attendance, obtain improper benefits, disrupt services, infringe others’ rights, or for any unlawful purpose.\n\nBefore simulating a location, confirm that you have authorization for the device, account, app, and intended use. You are solely responsible for all consequences of using this app.</string>
+    <string name="about_version_label">Version</string>
+
+    <string name="language_system">System default</string>
+    <string name="language_english">English</string>
+    <string name="language_chinese">Chinese</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_add">Add</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_go">Go</string>
+
+    <string name="disclaimer_title">Use Disclaimer</string>
+    <string name="disclaimer_body">LocusMimic is intended only for lawful testing, development, device debugging, and personal learning. Do not use it to bypass platform rules, commit fraud, invade privacy, or perform any illegal activity. Map display, place search, and reverse geocoding are provided by Baidu Map JavaScript API, which is loaded only after you consent. You are responsible for how this tool is used.</string>
+    <string name="disclaimer_accept_checkbox">I agree to lawful testing use and to loading Baidu Map JavaScript API for map features.</string>
+    <string name="disclaimer_confirm">Agree and continue</string>
+    <string name="disclaimer_decline">Exit</string>
+
+    <string name="cd_back">Back</string>
+    <string name="cd_navigate_back">Navigate back</string>
+    <string name="cd_menu">Menu</string>
+    <string name="cd_center">Center</string>
+    <string name="cd_options">Options</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_stop">Stop</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_app_icon">%1$s icon</string>
+    <string name="cd_search_place">Search place</string>
+    <string name="cd_clear_search">Clear search</string>
+
+    <string name="screen_settings">Settings</string>
+    <string name="screen_favorites">Favorites</string>
+    <string name="favorites_delete_title">Delete favorite?</string>
+    <string name="favorites_delete_message">Delete “%1$s” from favorites?</string>
+    <string name="screen_target_apps">Affected Apps</string>
+    <string name="screen_about">About</string>
+
+    <string name="drawer_navigation">Navigation</string>
+    <string name="drawer_app_info">App Info</string>
+    <string name="drawer_subtitle">Spoof your location easily</string>
+    <string name="drawer_version">Version %1$s</string>
+
+    <string name="category_language">Language</string>
+    <string name="category_notifications">Notifications</string>
+    <string name="category_external_control">External Control</string>
+    <string name="category_location_mode">Location mode</string>
+    <string name="category_map_storage">Map storage</string>
+    <string name="setting_map_cache_title">Web map cache</string>
+    <string name="setting_map_cache_description">Cache is kept until you choose to clear it. No automatic cleanup runs in the background.</string>
+    <string name="setting_map_cache_clear">Clear map cache</string>
+    <string name="setting_map_cache_cleared">Map cache cleared</string>
+    <string name="map_load_error">Could not load the web map. Check the network and Baidu browser AK whitelist.</string>
+    <string name="category_location">Location</string>
+    <string name="category_altitude">Altitude</string>
+    <string name="category_movement">Movement</string>
+
+    <string name="setting_language_title">App language</string>
+    <string name="setting_language_description">Choose the language used by the manager app and Xposed toast message.</string>
+    <string name="setting_hide_toast_title">Hide \'Fake location active\' toast</string>
+    <string name="setting_hide_toast_description">Suppresses the toast shown when the module activates in a target app</string>
+    <string name="setting_external_broadcast_title">Allow external broadcast control</string>
+    <string name="setting_external_broadcast_description">Off (default): blocks the BroadcastReceiver — no app or ADB shell can start/stop spoofing or set coordinates via intents. On: any installed app and \'adb shell am broadcast\' can drive the module (no permission check; coordinates are clamped to valid lat/lon ranges). Only enable this if you trust every app on the device or are running on a controlled (e.g., automation) device. See docs/EXTERNAL_CONTROL.md for actions and lock-down options.</string>
+    <string name="location_mode_application_title">App-level Hook</string>
+    <string name="location_mode_application_description">Requires Root and LSPosed. Only affects apps selected in the app list. Suitable for most apps, with extremely low resource and battery usage.</string>
+    <string name="location_mode_system_title">System-level Hook</string>
+    <string name="location_mode_system_description">Requires Root and LSPosed. In addition to app-level hooks, it handles Android system, framework, and phone services. It is intended for apps with unusual location paths or stronger mock-location detection. Compatibility is better, but system location issues may occur on a small number of devices. Resource and battery usage remain extremely low.</string>
+    <string name="location_mode_mock_provider_title">Mock Provider</string>
+    <string name="location_mode_mock_provider_description">Does not require Root or LSPosed, but you must first select LocusMimic under Developer options → Select mock location app. Android marks the location as mocked, so target apps may detect it. The LocusMimic background service must remain running during simulation, with relatively higher resource and battery usage.</string>
+    <string name="module_inactive_banner">LocusMimic is not active in LSPosed. Enable the module and configure its scope first.</string>
+    <string name="system_hooks_module_inactive">Module is not active. Enable LocusMimic in your Xposed manager first.</string>
+    <string name="system_hooks_scope_required_title">System scope setup required</string>
+    <string name="system_hooks_scope_required_message">Open your Xposed manager, then open LocusMimic → Scope and select: %1$s. Return here after saving. For safety, this app does not request or change scope itself.</string>
+    <string name="setting_more_info">More information about %1$s</string>
+    <string name="setting_disable">Disable %1$s</string>
+    <string name="setting_enable">Enable %1$s</string>
+    <string name="setting_adjust_value">Adjust %1$s value</string>
+    <string name="setting_value_display">%1$s: %2$s %3$s</string>
+
+    <string name="setting_randomize_title">Randomize Nearby Location</string>
+    <string name="setting_randomize_description">Randomly places your location within the specified radius</string>
+    <string name="setting_randomize_radius_label">Randomization Radius</string>
+    <string name="setting_horizontal_accuracy_title">Custom Horizontal Accuracy</string>
+    <string name="setting_horizontal_accuracy_description">Sets the horizontal accuracy of your location</string>
+    <string name="setting_horizontal_accuracy_label">Horizontal Accuracy</string>
+    <string name="setting_vertical_accuracy_title">Custom Vertical Accuracy</string>
+    <string name="setting_vertical_accuracy_description">Sets the vertical accuracy of your location</string>
+    <string name="setting_vertical_accuracy_label">Vertical Accuracy</string>
+    <string name="setting_altitude_title">Custom Altitude</string>
+    <string name="setting_altitude_description">Sets a custom altitude for your location</string>
+    <string name="setting_altitude_label">Altitude</string>
+    <string name="setting_msl_title">Custom MSL</string>
+    <string name="setting_msl_description">Sets a custom mean sea level value</string>
+    <string name="setting_msl_label">MSL</string>
+    <string name="setting_msl_accuracy_title">Custom MSL Accuracy</string>
+    <string name="setting_msl_accuracy_description">Sets the accuracy of the mean sea level value</string>
+    <string name="setting_msl_accuracy_label">MSL Accuracy</string>
+    <string name="setting_speed_title">Custom Speed</string>
+    <string name="setting_speed_description">Sets a custom speed for your location</string>
+    <string name="setting_speed_label">Speed</string>
+    <string name="setting_speed_accuracy_title">Custom Speed Accuracy</string>
+    <string name="setting_speed_accuracy_description">Sets the accuracy of your speed value</string>
+    <string name="setting_speed_accuracy_label">Speed Accuracy</string>
+
+    <string name="map_go_to_point">Go to Point</string>
+    <string name="map_add_to_favorites">Add to Favorites</string>
+    <string name="map_clear_location">Clear Location</string>
+    <string name="map_status_active">Simulating</string>
+    <string name="map_status_stopped">Stopped</string>
+    <string name="map_status_active_hint">Sharing this location with selected apps.</string>
+    <string name="map_status_waiting">Choose a point on the map</string>
+    <string name="map_status_hint">Tap the map to choose a location to simulate.</string>
+    <string name="map_status_coordinates">Lat %1$.6f  Lon %2$.6f</string>
+    <string name="map_status_address">Address: %1$s</string>
+    <string name="map_status_address_loading">Resolving address...</string>
+    <string name="map_status_address_unavailable">Address unavailable for this point.</string>
+    <string name="map_search_placeholder">Search a place</string>
+    <string name="map_search_empty">Type a place name first.</string>
+    <string name="map_search_no_results">No matching places found.</string>
+    <string name="map_search_error">Couldn\'t search places. Check the network and try again.</string>
+    <string name="toast_fake_location_set">Fake Location Set</string>
+    <string name="toast_unset_fake_location">Unset Fake Location</string>
+    <string name="mock_provider_channel_name">Mock Provider compatibility</string>
+    <string name="mock_provider_notification_text">Mock Provider compatibility mode is running</string>
+    <string name="toast_user_location_not_available">User location not available</string>
+    <string name="map_updating">Updating Map...</string>
+
+    <string name="field_name">Name</string>
+    <string name="field_latitude">Latitude</string>
+    <string name="field_longitude">Longitude</string>
+    <string name="validation_name_required">Please provide a name</string>
+    <string name="validation_latitude_range">Latitude must be between -90 and 90</string>
+    <string name="validation_longitude_range">Longitude must be between -180 and 180</string>
+    <string name="coordinates_lat_lon">Lat: %1$s, Lon: %2$s</string>
+
+    <string name="favorites_empty">No favorites added.</string>
+    <string name="target_apps_search_label">Search apps or package names</string>
+    <string name="target_apps_selected_count">%1$d selected</string>
+    <string name="target_apps_show_system_apps">Show system apps</string>
+    <string name="target_apps_system_framework">System Framework</string>
+    <string name="target_apps_scope_only">LSPosed scope (read-only)</string>
+    <string name="target_apps_module_inactive">Module is not active. Enable LocusMimic in your Xposed manager to choose target apps.</string>
+    <string name="target_apps_scope_request_failed">Couldn\'t update scope: %1$s</string>
+    <string name="target_apps_relaunch_cd">Relaunch %1$s</string>
+    <string name="target_apps_relaunching">Relaunching %1$s…</string>
+    <string name="target_apps_relaunch_failed">Couldn\'t relaunch %1$s. Is root granted?</string>
+    <string name="target_apps_root_required">Relaunching a target app requires LocusMimic to have root access. Please grant it in your root manager.</string>
+
+    <string name="permissions_activity_error">Error: Unable to access activity.</string>
+    <string name="permissions_required">Permissions are required to use this app</string>
+    <string name="permissions_grant">Grant Permissions</string>
+    <string name="permissions_permanently_denied">You have permanently denied location permissions. Please enable them from settings and restart the app.</string>
+    <string name="permissions_open_settings">Open Settings</string>
+
+    <string name="about_description">LocusMimic is provided only for lawful, authorized testing, development debugging, learning, and research.\n\nDo not use this app to bypass platform rules, falsify attendance or check-ins, obtain improper benefits, disrupt services, infringe others\' rights, or conduct any illegal activity.\n\nBefore using location simulation, make sure you have permission for the target device, account, app, and scenario. You are solely responsible for how you use this app and for any consequences arising from that use.</string>
+</resources>

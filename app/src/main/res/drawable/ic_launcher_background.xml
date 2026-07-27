@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A continuous sky-blue to electric-violet field, without layered colour boundaries. -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="10"
+                android:startY="0"
+                android:endX="98"
+                android:endY="108">
+                <item android:offset="0" android:color="#1BB9ED" />
+                <item android:offset="0.52" android:color="#2B85EA" />
+                <item android:offset="1" android:color="#8055D8" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M11,54a43,43 0,1 0,86 0a43,43 0,1 0,-86 0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="48"
+                android:gradientRadius="43">
+                <item android:offset="0" android:color="#3355E9FA" />
+                <item android:offset="0.58" android:color="#1827B5EF" />
+                <item android:offset="1" android:color="#002070D0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

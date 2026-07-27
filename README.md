@@ -23,7 +23,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 ## 开发说明
 
-本项目约 99% 的实现由 AI 辅助完成。维护者仅负责需求定义、代码审阅及实际测试。若在使用过程中发现任何bug和新的需求，可提交issues（并不一定会修复或实现，手动滑稽）。
+本项目约 99% 的实现由 AI 辅助完成。维护者负责需求定义、代码审阅及实际测试。欢迎通过 Issues 提交 Bug 报告或功能建议；维护者将根据优先级和维护能力评估处理，不保证修复或实现（手动滑稽）。
 
 ## 定位模式与要求
 
@@ -82,7 +82,7 @@ LocusMimic is an Android location-simulation module for rooted devices using Xpo
 
 ### Development disclosure
 
-Approximately 99% of this project was implemented with AI assistance. The maintainer remains responsible for requirements, code review, real-device testing, release decisions, and the consequences of using this project.
+Approximately 99% of this project was implemented with AI assistance. The maintainer is responsible for requirements, code review, and real-device testing. Bug reports and feature requests are welcome through Issues; they will be evaluated based on priority and maintenance capacity, and fixes or implementation are not guaranteed.
 
 ### Modes
 
@@ -90,7 +90,7 @@ Approximately 99% of this project was implemented with AI assistance. The mainta
 - **System Hook** — Root and LSPosed/Xposed are required. Use only when testing system-framework or phone-service location paths.
 - **Mock Provider** — No Root or LSPosed is needed, but Android developer options must authorize LocusMimic as the mock-location app. Android will mark the location as mocked.
 
-Only one mode can be active at a time. Android 11 (API 30) or newer is required. Supported ABIs are `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64`.
+Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. Supported ABIs are `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64`.
 
 Download releases from [GitHub Releases](https://github.com/wchunlin1006/LocusMimic/releases/latest). Maintainers can refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for release and signing instructions.
 

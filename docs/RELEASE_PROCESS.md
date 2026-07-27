@@ -6,7 +6,7 @@
 
 1. 确定语义化版本 `major.minor.patch`，例如 `1.0.0`。
 2. 计算 `versionCode = major * 10000 + minor * 100 + patch`；`1.0.0` 对应 `10000`。
-3. 更新 [CHANGELOG.md](../CHANGELOG.md) 的版本说明。
+3. 更新 [更新日志.md](../更新日志.md) 的版本说明。
 4. 确认 `README.md`、`SUMMARY`、`SUMMARY.md`、`SOURCE_URL` 与实际能力一致。
 
 ## 2. 创建正式签名包

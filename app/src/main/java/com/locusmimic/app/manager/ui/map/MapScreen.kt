@@ -75,6 +75,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
@@ -136,6 +137,7 @@ fun MapScreen(
     var showFavoritesPanel by remember { mutableStateOf(false) }
     var favoritePendingDeletion by remember { mutableStateOf<FavoriteLocation?>(null) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showSponsorSheet by remember { mutableStateOf(false) }
     var showTargetAppsSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
     val fakeLocationSet = stringResource(R.string.toast_fake_location_set)
@@ -325,7 +327,16 @@ fun MapScreen(
         }
 
     if (showAboutDialog) {
-        LocusMimicAboutSheet(onDismissRequest = { showAboutDialog = false })
+        LocusMimicAboutSheet(
+            onDismissRequest = { showAboutDialog = false },
+            onShowSponsor = {
+                showAboutDialog = false
+                showSponsorSheet = true
+            }
+        )
+    }
+    if (showSponsorSheet) {
+        LocusMimicSponsorSheet(onDismissRequest = { showSponsorSheet = false })
     }
     if (showTargetAppsSheet) {
         TargetAppsBottomSheet(onDismissRequest = { showTargetAppsSheet = false })
@@ -875,7 +886,10 @@ private fun AddToFavoritesBottomSheet(
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun LocusMimicAboutSheet(onDismissRequest: () -> Unit) {
+private fun LocusMimicAboutSheet(
+    onDismissRequest: () -> Unit,
+    onShowSponsor: () -> Unit
+) {
     HtmlModalSheet(onDismissRequest, stringResource(R.string.screen_about)) {
         Surface(
             modifier = Modifier.size(64.dp).align(Alignment.CenterHorizontally),
@@ -907,6 +921,60 @@ private fun LocusMimicAboutSheet(onDismissRequest: () -> Unit) {
             text = stringResource(R.string.about_dialog_summary),
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 21.sp),
             color = Color(0xFF607981)
+        )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 18.dp)
+                .height(54.dp)
+                .clickable(onClick = onShowSponsor),
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xFFE8F6EE),
+            contentColor = Color(0xFF227A4A)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Default.FavoriteBorder, contentDescription = null, modifier = Modifier.size(20.dp))
+                Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
+                    Text(stringResource(R.string.sponsor_entry_title), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.sponsor_entry_summary), style = MaterialTheme.typography.bodySmall, color = Color(0xFF5C8570))
+                }
+            }
+        }
+    }
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun LocusMimicSponsorSheet(onDismissRequest: () -> Unit) {
+    HtmlModalSheet(onDismissRequest, stringResource(R.string.sponsor_title)) {
+        Text(
+            text = stringResource(R.string.sponsor_dialog_summary),
+            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 21.sp),
+            color = Color(0xFF607981)
+        )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(360.dp)
+                .padding(top = 18.dp),
+            shape = RoundedCornerShape(20.dp),
+            color = Color.White
+        ) {
+            Image(
+                painter = painterResource(R.drawable.wechat_sponsor_qr),
+                contentDescription = stringResource(R.string.sponsor_wechat_qr),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize().padding(10.dp)
+            )
+        }
+        Text(
+            text = stringResource(R.string.sponsor_disclaimer),
+            style = MaterialTheme.typography.bodySmall.copy(lineHeight = 19.sp),
+            color = Color(0xFF71878E),
+            modifier = Modifier.padding(top = 14.dp)
         )
     }
 }

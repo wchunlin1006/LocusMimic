@@ -7,6 +7,12 @@
     <string name="nav_settings">Settings</string>
     <string name="about_dialog_summary">LocusMimic is only for lawful, authorized testing, development, debugging, and learning.\n\nDo not use this app to bypass platform rules, falsify attendance, obtain improper benefits, disrupt services, infringe others’ rights, or for any unlawful purpose.\n\nBefore simulating a location, confirm that you have authorization for the device, account, app, and intended use. You are solely responsible for all consequences of using this app.</string>
     <string name="about_version_label">Version</string>
+    <string name="sponsor_title">Support development</string>
+    <string name="sponsor_entry_title">Support development</string>
+    <string name="sponsor_entry_summary">Voluntarily support ongoing maintenance</string>
+    <string name="sponsor_dialog_summary">If LocusMimic helps with your testing or development, voluntary support is welcome to help maintain the project. Support does not unlock features or affect normal use.</string>
+    <string name="sponsor_wechat_qr">WeChat support QR code</string>
+    <string name="sponsor_disclaimer">Scan the QR code with WeChat to support the project. Payment information is handled by WeChat and is not collected by this app.</string>
 
     <string name="language_system">System default</string>
     <string name="language_english">English</string>

@@ -8,6 +8,7 @@
     <string name="about_dialog_summary">　　LocusMimic仅用于合法、已授权的测试、开发调试、学习研究等场景。\n\n　　请勿将本应用用于绕过平台规则、虚假打卡签到、获取不当利益、干扰服务、侵犯他人权益或任何违法违规用途。\n\n　　使用位置模拟前，请确认你对目标设备、账号、应用和使用场景拥有合法授权。你需要自行承担因使用本应用产生的全部责任和后果。</string>
     <string name="about_version_label">版本</string>
     <string name="sponsor_title">赞助开发</string>
+    <string name="sponsor_menu_title">赞助</string>
     <string name="sponsor_entry_title">赞助开发</string>
     <string name="sponsor_entry_summary">自愿支持项目后续维护</string>
     <string name="sponsor_dialog_summary">如果 LocusMimic 对你的测试或开发工作有所帮助，欢迎自愿赞助以支持后续维护。赞助不会解锁任何功能，也不会影响应用的正常使用。</string>

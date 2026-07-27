@@ -514,7 +514,7 @@ private fun MapTopControls(
                     ) { onShowOptionsMenuChange(false); onOpenSettings() }
                     MapOptionsMenuItem(
                         icon = PrototypeMenuIcon.Sponsor,
-                        label = stringResource(R.string.sponsor_entry_title)
+                        label = stringResource(R.string.sponsor_menu_title)
                     ) { onShowOptionsMenuChange(false); onShowSponsor() }
                     MapOptionsMenuItem(
                         icon = PrototypeMenuIcon.About,

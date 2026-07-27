@@ -17,7 +17,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 ## 界面预览
 
 <p align="center">
-  <img src="docs/images/home-map-simulation.jpg" alt="主页地图与模拟控制" width="32%" />
+  <img src="docs/images/home-map-simulation.jpg" alt="主页地图与模拟控制" width="32%" />&nbsp;&nbsp;&nbsp;
   <img src="docs/images/settings-location-modes.jpg" alt="设置中的定位模式" width="32%" />
 </p>
 

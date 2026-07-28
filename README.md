@@ -1,4 +1,4 @@
-# LocusMimic（LocusMimic）
+# LocusMimic（位置模拟）
 
 [English below](#english)
 

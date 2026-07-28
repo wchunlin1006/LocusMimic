@@ -17,8 +17,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 ## 界面预览
 
 <p align="center">
-  <img src="docs/images/home-map-simulation.jpg" alt="主页地图与模拟控制" width="32%" />&nbsp;&nbsp;&nbsp;
-  <img src="docs/images/settings-location-modes.jpg" alt="设置中的定位模式" width="32%" />
+  <img src="docs/images/locusmimic-poster.png" alt="LocusMimic 界面预览" width="58%" />
 </p>
 
 ## 开发说明
@@ -45,7 +44,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 ## 隐私与外部控制
 
-地图显示和地点搜索通过百度地图 JavaScript API 提供，因此会产生与地图服务相关的网络请求。项目不包含月度授权、远程启停、远程强制更新或远程服务器控制逻辑。
+地图显示和地点搜索通过百度地图 JavaScript API 提供，因此会产生与地图服务相关的网络请求。
 
 “允许外部广播控制”默认关闭。开启后，任何已安装应用或 `adb shell` 都可通过 Intent 开始/停止模拟或设置坐标；仅在你明确需要本地自动化时开启。接口与安全边界见 [docs/EXTERNAL_CONTROL.md](docs/EXTERNAL_CONTROL.md)。
 

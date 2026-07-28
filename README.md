@@ -5,6 +5,7 @@
 LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPosed 定位模拟模块。它支持地图选点、地点搜索、常用地点收藏、位置参数配置，并可向用户在 LSPosed 中选择的目标应用提供模拟位置。
 
 本项目在 [noobexon1/XposedFakeLocation](https://github.com/noobexon1/XposedFakeLocation) 和 [auag0/HideMockLocation](https://github.com/auag0/HideMockLocation) 基础上继续改造，以满足个人需求
+
 本项目仅用于合法测试、应用调试以及设备所有者明确授权的场景。
 
 ## 功能概览

@@ -15,10 +15,10 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 - 支持可配置经纬度、精度、海拔、速度与随机偏移等位置参数。
 - 支持三种定位模式：应用 Hook、系统 Hook 与 Mock Provider。
 
-## 界面预览
+## 应用界面与功能概览
 
 <p align="center">
-  <img src="docs/images/locusmimic-poster.png" alt="LocusMimic 界面预览" width="58%" />
+  <img src="docs/images/locusmimic-poster.png" alt="LocusMimic 应用界面与功能概览" width="58%" />
 </p>
 
 ## 开发说明

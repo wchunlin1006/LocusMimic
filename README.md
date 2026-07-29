@@ -12,7 +12,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 - 支持 LSPosed 中选定的作用应用提供配置的模拟位置。
 - 支持地图选点、地点搜索、收藏地点和当前位置定位等功能。
-- 支持配置用户自行申请的百度地图浏览器端 AK。
+- 支持自定义百度地图 AK，可使用自己申请的浏览器端（JavaScript API）AK
 - 支持可配置经纬度、精度、海拔、速度与随机偏移等位置参数。
 - 支持三种定位模式：应用 Hook、系统 Hook 与 Mock Provider。
 

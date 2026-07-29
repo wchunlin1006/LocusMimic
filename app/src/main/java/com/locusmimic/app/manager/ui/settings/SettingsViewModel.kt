@@ -310,9 +310,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         when {
             mockProviderEnabled -> LocationMode.MOCK_PROVIDER
             systemHooksEnabled -> LocationMode.SYSTEM_HOOK
-            else -> LocationMode.APPLICATION_HOOK
+            else -> LocationMode.SYSTEM_HOOK
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, LocationMode.APPLICATION_HOOK)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, LocationMode.SYSTEM_HOOK)
 
     private val _systemHooksEvents = MutableSharedFlow<SystemHooksEvent>(extraBufferCapacity = 1)
     val systemHooksEvents: SharedFlow<SystemHooksEvent> = _systemHooksEvents.asSharedFlow()
@@ -325,6 +325,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope
     )
     val languageTag: StateFlow<String> = _languageTagPreference.state
+
+    private val _baiduMapAkPreference = StringPreference(
+        DEFAULT_BAIDU_MAP_AK,
+        preferencesRepository.getBaiduMapAkFlow(),
+        preferencesRepository::saveBaiduMapAk,
+        viewModelScope
+    )
+    val baiduMapAk: StateFlow<String> = _baiduMapAkPreference.state
 
     // Setter methods for all preferences
     fun setUseAccuracy(value: Boolean) = _useAccuracyPreference.setValue(value)
@@ -346,6 +354,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setHideFakeLocationToast(value: Boolean) = _hideFakeLocationToastPreference.setValue(value)
     fun setEnableBroadcastControl(value: Boolean) = _enableBroadcastControlPreference.setValue(value)
     fun setLanguageTag(value: String) = _languageTagPreference.setValue(value)
+    fun setBaiduMapAk(value: String) = _baiduMapAkPreference.setValue(value.trim())
 
     fun selectLocationMode(mode: LocationMode) {
         when (mode) {

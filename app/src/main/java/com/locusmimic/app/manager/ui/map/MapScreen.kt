@@ -1,5 +1,7 @@
 package com.locusmimic.app.manager.ui.map
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.ImageView
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -28,6 +30,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -81,6 +85,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -93,6 +98,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -116,6 +122,7 @@ private val MapOverlayBorderColor = Color(0xFFD8E7EB)
 // Top controls sit directly on the map: use a quiet translucent surface and a hairline border
 // instead of an elevation shadow, so the map remains the visual ground plane.
 private val MapTopControlSurfaceColor = Color(0xF2FFFFFF)
+private const val TELEGRAM_CHANNEL_URL = "https://t.me/LocusMimic"
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -123,6 +130,7 @@ fun MapScreen(
     navController: NavController,
     mapViewModel: MapViewModel
 ) {
+    val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -132,9 +140,9 @@ fun MapScreen(
     val favorites by favoritesViewModel.favorites.collectAsStateWithLifecycle()
     val settingsViewModel: SettingsViewModel = viewModel()
     val locationMode by settingsViewModel.locationMode.collectAsStateWithLifecycle()
+    val baiduMapAk by settingsViewModel.baiduMapAk.collectAsStateWithLifecycle()
     val isPlaying = uiState.isPlaying
     val isFabClickable = uiState.isFabClickable
-    val showGoToPointDialog = uiState.goToPointDialogState == DialogState.Visible
     val showAddToFavoritesDialog = uiState.addToFavoritesDialogState == DialogState.Visible
     var showOptionsMenu by remember { mutableStateOf(false) }
     var showFavoritesPanel by remember { mutableStateOf(false) }
@@ -143,6 +151,9 @@ fun MapScreen(
     var showSponsorSheet by remember { mutableStateOf(false) }
     var showTargetAppsSheet by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
+    val hasMapModal =
+        showAddToFavoritesDialog || showAboutDialog || showSponsorSheet || showTargetAppsSheet ||
+            showSettingsSheet || uiState.showMapQuotaDialog || favoritePendingDeletion != null
     val fakeLocationSet = stringResource(R.string.toast_fake_location_set)
     val fakeLocationUnset = stringResource(R.string.toast_unset_fake_location)
     val dismissSearch = {
@@ -161,7 +172,8 @@ fun MapScreen(
                     .padding(innerPadding)
             ) {
                 MapViewContainer(
-                    mapViewModel,
+                    mapViewModel = mapViewModel,
+                    baiduMapAk = baiduMapAk,
                     onMapInteraction = {
                         dismissSearch()
                         showOptionsMenu = false
@@ -197,7 +209,6 @@ fun MapScreen(
                     showOptionsMenu = showOptionsMenu,
                     onShowOptionsMenuChange = { showOptionsMenu = it },
                     onCenterMap = mapViewModel::triggerCenterMapEvent,
-                    onGoToPoint = mapViewModel::showGoToPointDialog,
                     onAddFavorite = mapViewModel::showAddToFavoritesDialog,
                     favorites = favorites,
                     showFavoritesPanel = showFavoritesPanel,
@@ -212,6 +223,11 @@ fun MapScreen(
                     onClearLocation = { mapViewModel.updateClickedLocation(null) },
                     clearLocationEnabled = isFabClickable,
                     onShowSponsor = { showSponsorSheet = true },
+                    onOpenTelegram = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(TELEGRAM_CHANNEL_URL))
+                        )
+                    },
                     onShowAbout = { showAboutDialog = true },
                     onDismissSearch = dismissSearch,
                     modifier = Modifier
@@ -247,6 +263,7 @@ fun MapScreen(
                         .padding(start = 24.dp, end = 24.dp, bottom = 164.dp)
                     )
                 }
+                if (!hasMapModal) {
                 MapPlayButton(
                     isPlaying = isPlaying,
                     enabled = isFabClickable,
@@ -279,6 +296,7 @@ fun MapScreen(
                         .align(Alignment.BottomEnd)
                         .padding(end = 42.dp, bottom = 47.dp)
                 )
+                }
                 SnackbarHost(
                     hostState = snackbarHostState,
                     modifier = Modifier
@@ -300,13 +318,6 @@ fun MapScreen(
                     }
                 )
             }
-        }
-
-        if (showGoToPointDialog) {
-            GoToPointBottomSheet(
-                mapViewModel = mapViewModel,
-                onDismissRequest = mapViewModel::hideGoToPointDialog
-            )
         }
 
         if (showAddToFavoritesDialog) {
@@ -348,6 +359,15 @@ fun MapScreen(
     if (showSettingsSheet) {
         SettingsBottomSheet(onDismissRequest = { showSettingsSheet = false })
     }
+    if (uiState.showMapQuotaDialog) {
+        BaiduMapQuotaDialog(
+            onDismiss = mapViewModel::dismissMapQuotaDialog,
+            onOpenMapService = {
+                mapViewModel.dismissMapQuotaDialog()
+                showSettingsSheet = true
+            }
+        )
+    }
     favoritePendingDeletion?.let { favorite ->
         AlertDialog(
             onDismissRequest = { favoritePendingDeletion = null },
@@ -367,6 +387,78 @@ fun MapScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun BaiduMapQuotaDialog(
+    onDismiss: () -> Unit,
+    onOpenMapService: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = Color(0xFFFBFDFC),
+            shadowElevation = 18.dp
+        ) {
+            Column(modifier = Modifier.padding(start = 28.dp, top = 28.dp, end = 28.dp, bottom = 14.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        modifier = Modifier.size(34.dp),
+                        shape = CircleShape,
+                        color = Color(0xFFFFF2D6),
+                        contentColor = Color(0xFFA86D13)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.map_quota_dialog_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF1C2927),
+                        modifier = Modifier.padding(start = 13.dp)
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.map_quota_dialog_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF52615E),
+                    modifier = Modifier.padding(top = 22.dp)
+                )
+                Text(
+                    text = stringResource(R.string.map_quota_dialog_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF52615E),
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                HorizontalDivider(
+                    color = Color(0xFFE1E8E5),
+                    modifier = Modifier.padding(top = 23.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.map_quota_dialog_dismiss))
+                    }
+                    TextButton(onClick = onOpenMapService) {
+                        Text(
+                            text = stringResource(R.string.map_quota_dialog_open_settings),
+                            color = Color(0xFF28766A)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -413,7 +505,6 @@ private fun MapTopControls(
     showOptionsMenu: Boolean,
     onShowOptionsMenuChange: (Boolean) -> Unit,
     onCenterMap: () -> Unit,
-    onGoToPoint: () -> Unit,
     onAddFavorite: () -> Unit,
     favorites: List<FavoriteLocation>,
     showFavoritesPanel: Boolean,
@@ -425,6 +516,7 @@ private fun MapTopControls(
     onClearLocation: () -> Unit,
     clearLocationEnabled: Boolean,
     onShowSponsor: () -> Unit,
+    onOpenTelegram: () -> Unit,
     onShowAbout: () -> Unit,
     onDismissSearch: () -> Unit,
     modifier: Modifier = Modifier
@@ -496,18 +588,18 @@ private fun MapTopControls(
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
                     MapOptionsMenuItem(
-                        icon = PrototypeMenuIcon.GoToCoordinate,
-                        label = stringResource(R.string.map_go_to_point)
-                    ) { onShowOptionsMenuChange(false); onGoToPoint() }
-                    MapOptionsMenuItem(
-                        icon = PrototypeMenuIcon.AddFavorite,
-                        label = stringResource(R.string.map_add_to_favorites)
+                        icon = PrototypeMenuIcon.SaveAddress,
+                        label = stringResource(R.string.menu_save_address)
                     ) { onShowOptionsMenuChange(false); onAddFavorite() }
                     MapOptionsMenuItem(
                         icon = PrototypeMenuIcon.ClearLocation,
                         label = stringResource(R.string.map_clear_location),
                         enabled = clearLocationEnabled
                     ) { onShowOptionsMenuChange(false); onClearLocation() }
+                    MapOptionsMenuItem(
+                        icon = PrototypeMenuIcon.Telegram,
+                        label = stringResource(R.string.telegram)
+                    ) { onShowOptionsMenuChange(false); onOpenTelegram() }
                     MapOptionsMenuItem(
                         icon = PrototypeMenuIcon.Settings,
                         label = stringResource(R.string.screen_settings)
@@ -563,7 +655,7 @@ private fun MapOptionsMenuItem(
     }
 }
 
-private enum class PrototypeMenuIcon { GoToCoordinate, AddFavorite, ClearLocation, Settings, Sponsor, About }
+private enum class PrototypeMenuIcon { SaveAddress, ClearLocation, Settings, Sponsor, Telegram, About }
 
 /** Small outlined glyphs redrawn for the prototype instead of reusing mixed Material icons. */
 @Composable
@@ -573,29 +665,17 @@ private fun PrototypeMenuIcon(icon: PrototypeMenuIcon, color: Color, modifier: M
         fun point(x: Float, y: Float) = Offset(x * unit, y * unit)
         val stroke = Stroke(width = 1.7f * unit)
         when (icon) {
-            PrototypeMenuIcon.GoToCoordinate -> {
-                drawCircle(color, radius = 8.6f * unit, center = point(12f, 12f), style = stroke)
-                drawLine(color, point(5.5f, 12f), point(17.5f, 12f), strokeWidth = 1.7f * unit)
-                drawLine(color, point(14f, 8.5f), point(17.5f, 12f), strokeWidth = 1.7f * unit)
-                drawLine(color, point(14f, 15.5f), point(17.5f, 12f), strokeWidth = 1.7f * unit)
-            }
-            PrototypeMenuIcon.AddFavorite -> {
-                val star = Path().apply {
-                    moveTo(12f * unit, 3.3f * unit)
-                    lineTo(14.6f * unit, 8.7f * unit)
-                    lineTo(20.5f * unit, 9.5f * unit)
-                    lineTo(16.2f * unit, 13.6f * unit)
-                    lineTo(17.2f * unit, 19.4f * unit)
-                    lineTo(12f * unit, 16.7f * unit)
-                    lineTo(6.8f * unit, 19.4f * unit)
-                    lineTo(7.8f * unit, 13.6f * unit)
-                    lineTo(3.5f * unit, 9.5f * unit)
-                    lineTo(9.4f * unit, 8.7f * unit)
+            PrototypeMenuIcon.SaveAddress -> {
+                val pin = Path().apply {
+                    moveTo(12f * unit, 21f * unit)
+                    cubicTo(10.2f * unit, 18.1f * unit, 5f * unit, 14.3f * unit, 5f * unit, 9.6f * unit)
+                    cubicTo(5f * unit, 5.9f * unit, 8.1f * unit, 3f * unit, 12f * unit, 3f * unit)
+                    cubicTo(15.9f * unit, 3f * unit, 19f * unit, 5.9f * unit, 19f * unit, 9.6f * unit)
+                    cubicTo(19f * unit, 14.3f * unit, 13.8f * unit, 18.1f * unit, 12f * unit, 21f * unit)
                     close()
                 }
-                drawPath(star, color, style = stroke)
-                drawLine(color, point(19.5f, 17.5f), point(19.5f, 22f), strokeWidth = 1.7f * unit)
-                drawLine(color, point(17.3f, 19.7f), point(21.7f, 19.7f), strokeWidth = 1.7f * unit)
+                drawPath(pin, color, style = stroke)
+                drawCircle(color, radius = 2.1f * unit, center = point(12f, 9.5f), style = stroke)
             }
             PrototypeMenuIcon.ClearLocation -> {
                 drawCircle(color, radius = 8.6f * unit, center = point(12f, 12f), style = stroke)
@@ -620,6 +700,18 @@ private fun PrototypeMenuIcon(icon: PrototypeMenuIcon, color: Color, modifier: M
                     close()
                 }
                 drawPath(heart, color, style = stroke)
+            }
+            PrototypeMenuIcon.Telegram -> {
+                val plane = Path().apply {
+                    moveTo(3.5f * unit, 10.1f * unit)
+                    lineTo(20.3f * unit, 3.7f * unit)
+                    lineTo(15.4f * unit, 20.3f * unit)
+                    lineTo(10.4f * unit, 14.2f * unit)
+                    close()
+                }
+                drawPath(plane, color, style = stroke)
+                drawLine(color, point(10.4f, 14.2f), point(20.3f, 3.7f), strokeWidth = 1.7f * unit)
+                drawLine(color, point(10.4f, 14.2f), point(9.6f, 20.1f), strokeWidth = 1.7f * unit)
             }
             PrototypeMenuIcon.About -> {
                 drawCircle(color, radius = 8.6f * unit, center = point(12f, 12f), style = stroke)
@@ -865,27 +957,6 @@ private fun MapSideActionButton(
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun GoToPointBottomSheet(
-    mapViewModel: MapViewModel,
-    onDismissRequest: () -> Unit
-) {
-    val uiState by mapViewModel.uiState.collectAsStateWithLifecycle()
-    val (latitude, longitude) = uiState.goToPointState
-    HtmlModalSheet(onDismissRequest, stringResource(R.string.map_go_to_point)) {
-        Text("WGS-84 坐标", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = Color(0xFF6A858D), modifier = Modifier.padding(start = 4.dp, bottom = 8.dp))
-        PrototypeField(latitude.value, { mapViewModel.updateGoToPointField("latitude", it) }, stringResource(R.string.field_latitude), latitude.errorMessageRes)
-        PrototypeField(longitude.value, { mapViewModel.updateGoToPointField("longitude", it) }, stringResource(R.string.field_longitude), longitude.errorMessageRes)
-        PrototypePrimaryButton(stringResource(R.string.action_go)) {
-            mapViewModel.validateAndGo { lat, lon ->
-                mapViewModel.goToPoint(lat, lon)
-                mapViewModel.hideGoToPointDialog()
-            }
-        }
-    }
-}
-
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
-@Composable
 private fun AddToFavoritesBottomSheet(
     mapViewModel: MapViewModel,
     onDismissRequest: () -> Unit,
@@ -1022,18 +1093,24 @@ private fun HtmlModalSheet(
     skipPartiallyExpanded: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        modifier = Modifier,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = Color(0xFFF5FBFC),
+        scrimColor = Color(0x33000000),
         dragHandle = null
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 28.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
+                .padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 28.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth().padding(bottom = 18.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, color = Color(0xFF203F4C), modifier = Modifier.weight(1f))

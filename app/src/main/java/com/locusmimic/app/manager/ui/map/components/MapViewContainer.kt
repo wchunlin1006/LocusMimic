@@ -63,6 +63,7 @@ import java.util.ArrayDeque
 @Composable
 fun MapViewContainer(
     mapViewModel: MapViewModel,
+    baiduMapAk: String,
     onMapInteraction: () -> Unit = {}
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -94,7 +95,7 @@ fun MapViewContainer(
     }
 
     if (isMapForeground) {
-        ActiveWebMapContainer(mapViewModel, onMapInteraction)
+        ActiveWebMapContainer(mapViewModel, baiduMapAk, onMapInteraction)
     } else {
         // Removing the WebView stops JavaScript and releases its renderer while the app is hidden.
         Box(modifier = Modifier.fillMaxSize())
@@ -104,16 +105,24 @@ fun MapViewContainer(
 @Composable
 private fun ActiveWebMapContainer(
     mapViewModel: MapViewModel,
+    baiduMapAk: String,
     onMapInteraction: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by mapViewModel.uiState.collectAsStateWithLifecycle()
     val currentIsPlaying by rememberUpdatedState(uiState.isPlaying)
     val currentOnMapInteraction by rememberUpdatedState(onMapInteraction)
+    val effectiveBaiduMapAk = baiduMapAk.trim().ifBlank { BuildConfig.BAIDU_WEB_AK }
     val callbacks = remember { WebMapCallbacks() }
-    val controller = remember(context) { createWebMapController(context, callbacks) }
+    val controller = remember(context, effectiveBaiduMapAk) {
+        createWebMapController(context, callbacks, effectiveBaiduMapAk)
+    }
     val loadErrorMessage = stringResource(R.string.map_load_error)
-    var errorShown by remember { mutableStateOf(false) }
+    var errorShown by remember(effectiveBaiduMapAk) { mutableStateOf(false) }
+
+    LaunchedEffect(effectiveBaiduMapAk) {
+        mapViewModel.setLoadingStarted()
+    }
 
     callbacks.onReady = {
         controller.markReady()
@@ -126,6 +135,7 @@ private fun ActiveWebMapContainer(
             Toast.makeText(context, loadErrorMessage, Toast.LENGTH_LONG).show()
         }
     }
+    callbacks.onQuotaExceeded = mapViewModel::showMapQuotaDialog
     callbacks.onInteraction = { currentOnMapInteraction() }
     callbacks.onMapClicked = { latitude, longitude ->
         currentOnMapInteraction()
@@ -250,7 +260,8 @@ private fun HandleMapCommands(
 @SuppressLint("SetJavaScriptEnabled")
 private fun createWebMapController(
     context: Context,
-    callbacks: WebMapCallbacks
+    callbacks: WebMapCallbacks,
+    baiduMapAk: String
 ): WebMapController {
     val webView = WebView(context).apply {
         setBackgroundColor(Color.rgb(244, 250, 248))
@@ -293,7 +304,7 @@ private fun createWebMapController(
     }
 
     val html = context.assets.open(MAP_ASSET_PATH).bufferedReader().use { it.readText() }
-        .replace(AK_PLACEHOLDER, BuildConfig.BAIDU_WEB_AK)
+        .replace(AK_PLACEHOLDER, baiduMapAk)
     webView.loadDataWithBaseURL(APP_ORIGIN, html, "text/html", "UTF-8", null)
     return WebMapController(webView)
 }
@@ -392,6 +403,7 @@ private class WebMapController(val webView: WebView) {
 private class WebMapCallbacks {
     var onReady: () -> Unit = {}
     var onError: () -> Unit = {}
+    var onQuotaExceeded: () -> Unit = {}
     var onInteraction: () -> Unit = {}
     var onMapClicked: (Double, Double) -> Unit = { _, _ -> }
     var onZoomChanged: (Double) -> Unit = {}
@@ -407,6 +419,9 @@ private class WebMapBridge(private val callbacks: WebMapCallbacks) {
 
     @JavascriptInterface
     fun onMapError() = mainHandler.post { callbacks.onError() }
+
+    @JavascriptInterface
+    fun onMapServiceQuotaExceeded() = mainHandler.post { callbacks.onQuotaExceeded() }
 
     @JavascriptInterface
     fun onMapInteraction() = mainHandler.post { callbacks.onInteraction() }

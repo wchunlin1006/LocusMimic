@@ -9,6 +9,7 @@
     <string name="about_version_label">Version</string>
     <string name="sponsor_title">Support development</string>
     <string name="sponsor_menu_title">Sponsor</string>
+    <string name="telegram">Telegram</string>
     <string name="sponsor_entry_title">Support development</string>
     <string name="sponsor_entry_summary">Voluntarily support ongoing maintenance</string>
     <string name="sponsor_dialog_summary">If LocusMimic helps with your testing or development, voluntary support is welcome to help maintain the project. Support does not unlock features or affect normal use.</string>
@@ -23,7 +24,6 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_add">Add</string>
     <string name="action_delete">Delete</string>
-    <string name="action_go">Go</string>
 
     <string name="disclaimer_title">Use Disclaimer</string>
     <string name="disclaimer_body">LocusMimic is intended only for lawful testing, development, device debugging, and personal learning. Do not use it to bypass platform rules, commit fraud, invade privacy, or perform any illegal activity. Map display, place search, and reverse geocoding are provided by Baidu Map JavaScript API, which is loaded only after you consent. You are responsible for how this tool is used.</string>
@@ -59,12 +59,28 @@
     <string name="category_notifications">Notifications</string>
     <string name="category_external_control">External Control</string>
     <string name="category_location_mode">Location mode</string>
-    <string name="category_map_storage">Map storage</string>
+    <string name="category_map_service">Map service</string>
+    <string name="setting_map_ak_title">Baidu Maps AK</string>
+    <string name="setting_map_ak_description">Use your own browser-side JavaScript API AK when the bundled quota is insufficient. Saving reloads the map.</string>
+    <string name="setting_map_ak_label">Baidu Maps AK</string>
+    <string name="setting_map_ak_apply_title">Application instructions</string>
+    <string name="setting_map_ak_apply_step_one">1. Open the Baidu Map Open Platform console.</string>
+    <string name="setting_map_ak_open_console">Open console</string>
+    <string name="setting_map_ak_apply_step_two">2. Create a Browser-side (JavaScript API) application and enable Javascript API, JS Place Search, JS Reverse Geocoding, and jsapi base map.</string>
+    <string name="setting_map_ak_apply_step_three">3. Add this host to the Referer whitelist:</string>
+    <string name="setting_map_ak_copy_host">Copy Referer host</string>
+    <string name="setting_map_ak_save">Save and reload map</string>
+    <string name="setting_map_ak_saved">Map AK saved. The map is reloading.</string>
     <string name="setting_map_cache_title">Web map cache</string>
     <string name="setting_map_cache_description">Cache is kept until you choose to clear it. No automatic cleanup runs in the background.</string>
     <string name="setting_map_cache_clear">Clear map cache</string>
     <string name="setting_map_cache_cleared">Map cache cleared</string>
     <string name="map_load_error">Could not load the web map. Check the network and Baidu browser AK whitelist.</string>
+    <string name="map_quota_dialog_title">Baidu Maps service quota is insufficient</string>
+    <string name="map_quota_dialog_message">The bundled AK has used its service quota. Place search and address lookup are temporarily unavailable.</string>
+    <string name="map_quota_dialog_hint">Add your own Baidu Maps AK to restore these map services.</string>
+    <string name="map_quota_dialog_dismiss">Not now</string>
+    <string name="map_quota_dialog_open_settings">Open map service</string>
     <string name="category_location">Location</string>
     <string name="category_altitude">Altitude</string>
     <string name="category_movement">Movement</string>
@@ -116,7 +132,7 @@
     <string name="setting_speed_accuracy_description">Sets the accuracy of your speed value</string>
     <string name="setting_speed_accuracy_label">Speed Accuracy</string>
 
-    <string name="map_go_to_point">Go to Point</string>
+    <string name="menu_save_address">Save Address</string>
     <string name="map_add_to_favorites">Add to Favorites</string>
     <string name="map_clear_location">Clear Location</string>
     <string name="map_status_active">Simulating</string>

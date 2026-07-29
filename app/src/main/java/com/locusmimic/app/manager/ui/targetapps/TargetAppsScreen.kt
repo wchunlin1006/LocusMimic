@@ -62,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -290,9 +291,11 @@ fun TargetAppsBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        modifier = Modifier,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = Color(0xFFF5FBFC),
+        scrimColor = Color.Transparent,
         dragHandle = null
     ) {
         Column(

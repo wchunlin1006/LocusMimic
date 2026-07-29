@@ -1,8 +1,12 @@
 package com.locusmimic.app.manager.ui.settings
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +65,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
@@ -91,6 +96,8 @@ private object Dimensions {
 
 private val MiuixPageBackground = Color(0xFFF3F6F5)
 private val MiuixCardSurface = Color(0xFFFFFFFF)
+private const val BAIDU_AK_CONSOLE_URL = "https://lbsyun.baidu.com/apiconsole/key#/home"
+private const val BAIDU_MAP_REFERER_HOST = "appassets.androidplatform.net"
 
 private object SettingDefinitions {
     @Composable
@@ -376,7 +383,7 @@ fun SettingsScreen(
                 }
                 Spacer(modifier = Modifier.height(Dimensions.SPACING_MEDIUM))
 
-                CategoryHeader(stringResource(R.string.category_map_storage))
+                CategoryHeader(stringResource(R.string.category_map_service))
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -385,30 +392,23 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = MiuixCardSurface),
                     elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.CARD_ELEVATION)
                 ) {
-                    Column(modifier = Modifier.padding(Dimensions.SPACING_MEDIUM)) {
-                        Text(
-                            text = stringResource(R.string.setting_map_cache_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = stringResource(R.string.setting_map_cache_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        TextButton(
-                            onClick = {
-                                cacheScope.launch {
-                                    WebMapCache.clear(context)
-                                    snackbarHostState.showSnackbar(
-                                        context.getString(R.string.setting_map_cache_cleared)
-                                    )
-                                }
+                    MapServiceSettings(
+                        baiduMapAk = settingsViewModel.baiduMapAk.collectAsState().value,
+                        onSave = settingsViewModel::setBaiduMapAk,
+                        onSaved = {
+                            cacheScope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.setting_map_ak_saved))
                             }
-                        ) {
-                            Text(stringResource(R.string.setting_map_cache_clear))
+                        },
+                        onClearMapCache = {
+                            cacheScope.launch {
+                                WebMapCache.clear(context)
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.setting_map_cache_cleared)
+                                )
+                            }
                         }
-                    }
+                    )
                 }
                 Spacer(modifier = Modifier.height(Dimensions.SPACING_MEDIUM))
 
@@ -510,9 +510,11 @@ fun SettingsBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
+        modifier = Modifier,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = Color(0xFFF5FBFC),
+        scrimColor = Color.Transparent,
         dragHandle = null
     ) {
         Box(
@@ -589,17 +591,22 @@ fun SettingsBottomSheet(
                         onModeSelected = settingsViewModel::selectLocationMode
                     )
                 }
-                SettingsSheetSection(stringResource(R.string.category_map_storage)) {
-                    Column(modifier = Modifier.padding(Dimensions.SPACING_MEDIUM)) {
-                        Text(stringResource(R.string.setting_map_cache_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        Text(stringResource(R.string.setting_map_cache_description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        TextButton(onClick = {
+                SettingsSheetSection(stringResource(R.string.category_map_service)) {
+                    MapServiceSettings(
+                        baiduMapAk = settingsViewModel.baiduMapAk.collectAsState().value,
+                        onSave = settingsViewModel::setBaiduMapAk,
+                        onSaved = {
+                            cacheScope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.setting_map_ak_saved))
+                            }
+                        },
+                        onClearMapCache = {
                             cacheScope.launch {
                                 WebMapCache.clear(context)
                                 snackbarHostState.showSnackbar(context.getString(R.string.setting_map_cache_cleared))
                             }
-                        }) { Text(stringResource(R.string.setting_map_cache_clear)) }
-                    }
+                        }
+                    )
                 }
                 categories.forEach { (category, settingsInCategory) ->
                     SettingsSheetSection(category) {
@@ -653,6 +660,169 @@ private fun SettingsSheetSection(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) { content() }
+}
+
+@Composable
+private fun MapServiceSettings(
+    baiduMapAk: String,
+    onSave: (String) -> Unit,
+    onSaved: () -> Unit,
+    onClearMapCache: () -> Unit
+) {
+    Column {
+        BaiduMapAkSetting(
+            baiduMapAk = baiduMapAk,
+            onSave = onSave,
+            onSaved = onSaved
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = Dimensions.SPACING_MEDIUM),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
+        MapCacheSetting(onClearMapCache)
+    }
+}
+
+@Composable
+private fun BaiduMapAkSetting(
+    baiduMapAk: String,
+    onSave: (String) -> Unit,
+    onSaved: () -> Unit
+) {
+    val context = LocalContext.current
+    var draftAk by remember(baiduMapAk) { mutableStateOf(baiduMapAk) }
+
+    Column(modifier = Modifier.padding(Dimensions.SPACING_MEDIUM)) {
+        Text(
+            text = stringResource(R.string.setting_map_ak_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = stringResource(R.string.setting_map_ak_description),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = Dimensions.SPACING_EXTRA_SMALL)
+        )
+        OutlinedTextField(
+            value = draftAk,
+            onValueChange = { draftAk = it },
+            label = { Text(stringResource(R.string.setting_map_ak_label)) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = Dimensions.SPACING_MEDIUM)
+        )
+        Text(
+            text = stringResource(R.string.setting_map_ak_apply_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = Dimensions.SPACING_SMALL)
+        )
+        Row(
+            modifier = Modifier.padding(top = Dimensions.SPACING_EXTRA_SMALL),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.setting_map_ak_apply_step_one),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.setting_map_ak_open_console),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(start = Dimensions.SPACING_SMALL)
+                    .clickable {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BAIDU_AK_CONSOLE_URL)))
+                }
+            )
+        }
+        Text(
+            text = stringResource(R.string.setting_map_ak_apply_step_two),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = Dimensions.SPACING_SMALL)
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = Dimensions.SPACING_EXTRA_SMALL)
+        ) {
+            Text(
+                text = stringResource(R.string.setting_map_ak_apply_step_three),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = BAIDU_MAP_REFERER_HOST,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier.clickable {
+                    context.getSystemService(ClipboardManager::class.java)
+                        .setPrimaryClip(
+                            ClipData.newPlainText("Baidu Maps Referer host", BAIDU_MAP_REFERER_HOST)
+                        )
+                }
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = Dimensions.SPACING_EXTRA_SMALL),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = stringResource(R.string.setting_map_ak_save),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(vertical = 2.dp)
+                    .clickable {
+                    onSave(draftAk.trim())
+                    onSaved()
+                }
+            )
+        }
+    }
+
+}
+
+@Composable
+private fun MapCacheSetting(onClearMapCache: () -> Unit) {
+    Column(modifier = Modifier.padding(Dimensions.SPACING_MEDIUM)) {
+        Text(
+            text = stringResource(R.string.setting_map_cache_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = stringResource(R.string.setting_map_cache_description),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = Dimensions.SPACING_EXTRA_SMALL)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = Dimensions.SPACING_EXTRA_SMALL),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Text(
+                text = stringResource(R.string.setting_map_cache_clear),
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(vertical = 2.dp)
+                    .clickable(onClick = onClearMapCache)
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

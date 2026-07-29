@@ -117,7 +117,12 @@
                     const options = {
                         pageCapacity: 5,
                         onSearchComplete: result => {
-                            const success = localSearch && localSearch.getStatus() === BMAP_STATUS_SUCCESS;
+                            const status = localSearch && localSearch.getStatus();
+                            const success = status === BMAP_STATUS_SUCCESS;
+                            if (typeof BMAP_STATUS_SERVICE_UNAVAILABLE !== 'undefined' &&
+                                status === BMAP_STATUS_SERVICE_UNAVAILABLE) {
+                                callAndroid('onMapServiceQuotaExceeded');
+                            }
                             const results = [];
                             if (success && result) {
                                 const count = Math.min(5, result.getCurrentNumPois());
@@ -148,6 +153,11 @@
                     geocoder.getLocation(
                         point(bdLatitude, bdLongitude),
                         result => {
+                            const status = geocoder.getStatus && geocoder.getStatus();
+                            if (typeof BMAP_STATUS_SERVICE_UNAVAILABLE !== 'undefined' &&
+                                status === BMAP_STATUS_SERVICE_UNAVAILABLE) {
+                                callAndroid('onMapServiceQuotaExceeded');
+                            }
                             if (!result) {
                                 callAndroid('onReverseGeocodeResult', wgsLatitude, wgsLongitude, '{}', false);
                                 return;

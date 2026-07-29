@@ -44,6 +44,7 @@ const val KEY_HIDE_FAKE_LOCATION_TOAST = "hide_fake_location_toast"
 
 const val KEY_ENABLE_BROADCAST_CONTROL = "enable_broadcast_control"
 const val KEY_LANGUAGE_TAG = "language_tag"
+const val KEY_BAIDU_MAP_AK = "baidu_map_ak"
 
 const val KEY_ENABLE_SYSTEM_HOOKS = "enable_system_hooks"
 const val KEY_ENABLE_MOCK_PROVIDER = "enable_mock_provider"
@@ -78,10 +79,11 @@ const val DEFAULT_SPEED = 0.0f
 const val DEFAULT_USE_SPEED_ACCURACY = false
 const val DEFAULT_SPEED_ACCURACY = 0.0f
 
-const val DEFAULT_HIDE_FAKE_LOCATION_TOAST = false
+const val DEFAULT_HIDE_FAKE_LOCATION_TOAST = true
 
 const val DEFAULT_ENABLE_BROADCAST_CONTROL = false
 const val DEFAULT_LANGUAGE_TAG = ""
+const val DEFAULT_BAIDU_MAP_AK = ""
 
 const val DEFAULT_ENABLE_SYSTEM_HOOKS = false
 const val DEFAULT_ENABLE_MOCK_PROVIDER = false

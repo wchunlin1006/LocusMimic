@@ -354,4 +354,12 @@ class PreferencesRepository(context: Context) {
     fun getLanguageTagFlow(): Flow<String> = localFlow(KEY_LANGUAGE_TAG) { it.getString(KEY_LANGUAGE_TAG, DEFAULT_LANGUAGE_TAG) ?: DEFAULT_LANGUAGE_TAG }
     suspend fun saveLanguageTag(languageTag: String) = editLocal { putString(KEY_LANGUAGE_TAG, languageTag) }
     // endregion
+
+    // region Baidu Map AK (local)
+    fun getBaiduMapAkFlow(): Flow<String> = localFlow(KEY_BAIDU_MAP_AK) {
+        it.getString(KEY_BAIDU_MAP_AK, DEFAULT_BAIDU_MAP_AK) ?: DEFAULT_BAIDU_MAP_AK
+    }
+
+    suspend fun saveBaiduMapAk(ak: String) = editLocal { putString(KEY_BAIDU_MAP_AK, ak.trim()) }
+    // endregion
 }

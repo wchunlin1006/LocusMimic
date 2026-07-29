@@ -45,6 +45,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private var activeReverseLocation: GeoPoint? = null
     private var reverseGeocodeJob: Job? = null
     private var mapActive = false
+    private var mapQuotaDialogShownThisSession = false
 
     /**
      * Represents field input state with value and validation error message
@@ -69,10 +70,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         val userLocation: GeoPoint? = null,
         val loadingState: LoadingState = LoadingState.Loading,
         val mapZoom: Double? = null,
-        val goToPointDialogState: DialogState = DialogState.Hidden,
         val addToFavoritesState: FavoritesInputState = FavoritesInputState(),
         val addToFavoritesDialogState: DialogState = DialogState.Hidden,
-        val goToPointState: Pair<InputFieldState, InputFieldState> = InputFieldState() to InputFieldState(),
         val placeSearchQuery: String = "",
         val isPlaceSearchLoading: Boolean = false,
         val placeSearchResults: List<PlaceSearchResult> = emptyList(),
@@ -83,6 +82,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         val selectedLocationPoiTitle: String? = null,
         val isSelectedLocationAddressLoading: Boolean = false,
         @StringRes val selectedLocationAddressMessageRes: Int? = null,
+        val showMapQuotaDialog: Boolean = false,
     ) {
         val isFabClickable: Boolean
             get() = lastClickedLocation != null
@@ -319,18 +319,6 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         goToPoint(result.latitude, result.longitude)
     }
 
-    // Update specific fields in the GoToPointDialog state
-    fun updateGoToPointField(fieldName: String, newValue: String) {
-        val (latitudeField, longitudeField) = _uiState.value.goToPointState
-        val updatedGoToPointState = when (fieldName) {
-            "latitude" -> latitudeField.copy(value = newValue) to longitudeField
-            "longitude" -> latitudeField to longitudeField.copy(value = newValue)
-            else -> latitudeField to longitudeField
-        }
-
-        _uiState.update { it.copy(goToPointState = updatedGoToPointState) }
-    }
-
     // Center map
     fun triggerCenterMapEvent() {
         viewModelScope.launch {
@@ -347,14 +335,14 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(loadingState = LoadingState.Loaded) }
     }
 
-    // Dialog show/hide logic
-    fun showGoToPointDialog() {
-        _uiState.update { it.copy(goToPointDialogState = DialogState.Visible) }
+    fun showMapQuotaDialog() {
+        if (mapQuotaDialogShownThisSession) return
+        mapQuotaDialogShownThisSession = true
+        _uiState.update { it.copy(showMapQuotaDialog = true) }
     }
 
-    fun hideGoToPointDialog() {
-        _uiState.update { it.copy(goToPointDialogState = DialogState.Hidden) }
-        clearGoToPointInputs()
+    fun dismissMapQuotaDialog() {
+        _uiState.update { it.copy(showMapQuotaDialog = false) }
     }
 
     fun showAddToFavoritesDialog() {
@@ -382,27 +370,6 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     ): Int? {
         val value = input.toDoubleOrNull()
         return if (value == null || value !in range) errorMessageRes else null
-    }
-
-    // Validate GoToPoint inputs
-    fun validateAndGo(onSuccess: (latitude: Double, longitude: Double) -> Unit) {
-        val (latField, lonField) = _uiState.value.goToPointState
-        val latitudeError = validateInput(latField.value, -90.0..90.0, R.string.validation_latitude_range)
-        val longitudeError = validateInput(lonField.value, -180.0..180.0, R.string.validation_longitude_range)
-
-        val updatedGoToPointState = latField.copy(errorMessageRes = latitudeError) to lonField.copy(errorMessageRes = longitudeError)
-        _uiState.update { it.copy(goToPointState = updatedGoToPointState) }
-
-        if (latitudeError == null && longitudeError == null) {
-            onSuccess(latField.value.toDouble(), lonField.value.toDouble())
-        }
-    }
-
-    // Clear GoToPoint inputs
-    fun clearGoToPointInputs() {
-        _uiState.update {
-            it.copy(goToPointState = InputFieldState() to InputFieldState())
-        }
     }
 
     // Prefill AddToFavorites latitude/longitude with marker values (if available)

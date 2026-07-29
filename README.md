@@ -12,6 +12,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 - 支持 LSPosed 中选定的作用应用提供配置的模拟位置。
 - 支持地图选点、地点搜索、收藏地点和当前位置定位等功能。
+- 支持配置用户自行申请的百度地图浏览器端 AK。
 - 支持可配置经纬度、精度、海拔、速度与随机偏移等位置参数。
 - 支持三种定位模式：应用 Hook、系统 Hook 与 Mock Provider。
 
@@ -56,6 +57,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 - [变更记录](更新日志.md)
 - [贡献说明](CONTRIBUTING.md)
 - [上游改造说明](docs/FORK_CHANGES.md)
+- [Telegram 频道](https://t.me/LocusMimic)
 
 提交 Issue 时请提供设备/ROM、Android、Root 方案、LSPosed 版本、模块版本、作用域、复现步骤以及必要的 LSPosed 日志或 Logcat，并注意移除账号、地址与其他敏感信息。
 
@@ -77,6 +79,7 @@ LocusMimic is an Android location-simulation module for rooted devices using Xpo
 
 - Provides configured simulated locations to selected LSPosed app scopes.
 - Supports map selection, place search, favourite locations, and current-location positioning.
+- Supports a user-provided Baidu Maps browser-side JavaScript API AK.
 - Supports configurable latitude, longitude, accuracy, altitude, speed, and random offset parameters.
 - Provides three location modes: Application Hook, System Hook, and Mock Provider.
 
@@ -93,6 +96,8 @@ Approximately 99% of this project was implemented with AI assistance. The mainta
 Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. Supported ABIs are `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64`.
 
 Download releases from [GitHub Releases](https://github.com/wchunlin1006/LocusMimic/releases/latest). Maintainers can refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for release and signing instructions.
+
+Project updates and discussion: [Telegram channel](https://t.me/LocusMimic).
 
 The optional external broadcast-control switch is off by default. When enabled, any installed app or `adb shell` can issue the documented local intents; see [docs/EXTERNAL_CONTROL.md](docs/EXTERNAL_CONTROL.md) before enabling it.
 

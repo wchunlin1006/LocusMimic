@@ -1,0 +1,51 @@
+# === Android build artifacts ===
+/build/
+/app/build/
+/*.apk
+/*.aab
+*.ap_
+*.dex
+
+# === Gradle ===
+.gradle/
+/local.properties
+/keystore.properties
+/keystore/
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+
+# === Android Studio ===
+.idea/
+/*.iml
+*.ipr
+*.iws
+
+# === OS-generated cruft ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# === Logs & temporary files ===
+*.log
+*.tmp
+*.bak
+*~
+
+# === Captures / profiling / other ===
+captures/
+*.hprof
+
+# === Google services (API keys etc) ===
+google-services.json
+app/google-services.json
+
+# === Kotlin build artifacts ===
+.kotlin/
+.cursor/
+.claude/
+build-install.bat
+
+/.vscode

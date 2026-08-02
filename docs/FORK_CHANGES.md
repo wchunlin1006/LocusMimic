@@ -15,6 +15,6 @@ LocusMimic is a personal-maintenance fork based on [noobexon1/XposedFakeLocation
 - Integrated selected implementation characteristics from HideMockLocation to improve location-simulation concealment in some apps with stronger mock-location detection.
 - Provides mutually exclusive Application Hook, System Hook and Mock Provider modes.
 
-## Deliberately excluded
+## Distribution boundary
 
-This fork does not include monthly authorization, remote enable/disable, remote force-update, or server-side remote-control mechanisms. It also does not publish private signing keys, map keys, accounts or server credentials.
+Starting with version 1.2.1, subsequent implementation source is maintained privately. Public releases do not contain private signing keys, map keys, accounts, server credentials, Android/Web/service source code, or build projects.

@@ -1,6 +1,8 @@
 # 公开发布说明
 
-本文用于将 LocusMimic 发布到 GitHub，并提交至 LSPosed 模块仓库。当前公开源码仓库为 <https://github.com/wchunlin1006/LocusMimic>，包名为 `com.locusmimic.app`。
+本文用于将 LocusMimic 的二进制版本发布到 GitHub，并同步至 LSPosed 模块仓库。公开发布仓库为 <https://github.com/wchunlin1006/LocusMimic>，包名为 `com.locusmimic.app`。
+
+自 `1.2.1` 起，所有后续版本只发布签名 APK、校验和、版本说明与必要文档，不再提交或推送 Android、Web、服务端及构建工程源码。
 
 ## 发布前安全检查
 
@@ -10,6 +12,7 @@
 - `keystore.properties`、`keystore/`、`*.jks`、`*.keystore`、`*.p12`
 - 密码、Token、私钥、账号、服务器地址及其他个人资料
 - 构建产物目录 `app/build/`、`.gradle/`、`.kotlin/`
+- Android、Web、服务端源码及构建工程文件
 
 可在 PowerShell 中检查：
 
@@ -21,27 +24,11 @@ git diff --cached --check
 
 `local.properties` 与 `keystore.properties` 应显示为已忽略。若曾意外公开密钥或密码，请立即在对应服务端轮换，而非仅从仓库历史中删除。
 
-## 首次上传 GitHub
+## 发布分支
 
-在项目根目录执行。以下命令只暂存、提交并推送当前项目；请先自行核对 `git status` 输出。
+每个版本使用独立的纯发布资料分支或 worktree。分支仅允许包含 README、许可证、摘要、版本说明、校验和、海报和必要文档；APK 只作为 GitHub Release 附件上传。
 
-```powershell
-git remote set-url origin https://github.com/wchunlin1006/LocusMimic.git
-git branch -M main
-git add .
-git status
-git commit -m "Prepare LocusMimic public release"
-git push -u origin main
-```
-
-如果希望先保留现有 `self-development` 分支，可将最后两行改为：
-
-```powershell
-git commit -m "Prepare LocusMimic public release"
-git push -u origin self-development
-```
-
-随后在 GitHub 创建 Pull Request 合并到 `main`。不要在未检查 `git status` 的情况下直接执行 `git add .`。
+禁止推送 `main` 或任何包含开发源码的分支。提交前必须使用 `git ls-tree -r --name-only HEAD` 和 `git diff --cached --name-only` 检查完整文件清单。
 
 ## 版本与 GitHub Release
 
@@ -69,29 +56,13 @@ versionCode-versionName
 
 APK 必须使用你自己的正式签名。没有 `keystore.properties` 的本地 Release 会回退到 Android 调试证书，只适合安装测试，不应作为公开升级链路的正式发布包。
 
-## GitHub Actions 自动构建
+## APK Release 附件
 
-`.github/workflows/release.yml` 仅可手动触发，并向**已经创建的** GitHub Release 上传 APK。先在仓库 Settings → Secrets and variables → Actions 添加：
-
-```text
-LOCUSMIMIC_KEYSTORE_BASE64
-LOCUSMIMIC_KEYSTORE_PASSWORD
-LOCUSMIMIC_KEY_ALIAS
-LOCUSMIMIC_KEY_PASSWORD
-LOCUSMIMIC_BAIDU_WEB_AK
-```
-
-`LOCUSMIMIC_KEYSTORE_BASE64` 是 JKS 文件的 Base64 内容。PowerShell 示例：
-
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\path\to\locusmimic-release.jks")) | Set-Clipboard
-```
-
-创建 GitHub Release 后，在 Actions 中运行 “Build and attach release APK”，输入同一标签，例如 `10000-1.0.0`。工作流会校验标签与版本号映射、临时写入签名和地图密钥配置、构建并上传 APK；这些密钥不会写回仓库。
+APK 只在本地可信环境构建和签名。发布前验证包名、`versionCode`、`versionName`、签名证书和 SHA-256，并将 APK 与校验和作为同名 GitHub Release 附件上传。不得通过公开仓库恢复源码构建流程，也不得上传签名密钥或服务端配置。
 
 ## 提交 LSPosed 模块仓库
 
-1. 确认公开 GitHub 仓库默认分支已包含 `README.md`、`SUMMARY`、`SOURCE_URL`、`LICENSE`，并已有带有效 APK 附件的 GitHub Release。
+1. 确认公开 GitHub 发布资料分支包含 `README.md`、`SUMMARY`、`SOURCE_URL`、`LICENSE`，并已有带有效 APK 附件的 GitHub Release。
 2. 打开 <https://modules.lsposed.org/submission/>，提交包名 `com.locusmimic.app`。
 3. 按页面提示在 `Xposed-Modules-Repo/submission` 创建提交；机器人会创建对应包名仓库并邀请维护者。
 4. 在创建的模块仓库中保留同步的 `README.md`、`SUMMARY`、`SOURCE_URL`、`LICENSE`，并按 `versionCode-versionName` 标签提交后续 Release。

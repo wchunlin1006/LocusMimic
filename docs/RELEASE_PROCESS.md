@@ -1,6 +1,6 @@
 # Release Process
 
-本流程只使用 GitHub Releases 与 LSPosed 模块仓库；项目不使用远程启停、远程强制更新或服务器控制文件。
+本流程只使用 GitHub Releases 与 LSPosed 模块仓库。自 `1.2.1` 起仅发布二进制 APK 和必要发布资料，不公开后续源码。
 
 ## 1. 准备版本
 
@@ -20,13 +20,13 @@
 
 ## 3. 创建 GitHub Release
 
-1. 将源码和文档提交到 GitHub 默认分支。
+1. 将必要文档提交到独立的纯发布资料分支；不得提交源码。
 2. 创建标签：`versionCode-versionName`，例如 `10000-1.0.0`。
 3. 创建同名 GitHub Release，标题使用 `LocusMimic 1.0.0`。
 4. 上传已验证的正式签名 APK，文件名保留构建输出的版本与日期。
 5. 下载 Release 附件再次安装或校验签名，确认附件未损坏。
 
-也可在创建 Release 后手动触发 GitHub Actions 工作流。工作流会从 Secrets 中读取签名与百度地图 AK，并把构建出的 APK 附加到该 Release。
+APK 必须来自已验证的本地正式签名构建，并作为 Release 附件上传。
 
 ## 4. 同步 LSPosed 模块仓库
 
@@ -41,4 +41,5 @@
 - APK 使用正式签名，且可在测试设备安装。
 - README 下载链接、`SOURCE_URL` 和 LSPosed 包名均指向 `com.locusmimic.app` / LocusMimic。
 - 未公开任何密钥、账号、设备日志中的敏感字段或私人地址。
+- 发布分支和标签的完整 Git 树不包含 Android、Web、服务端或构建工程源码。
 - 仅保留合法、已授权测试用途的项目描述。

@@ -8,6 +8,8 @@ LocusMimic·位置模拟 是一款LSPosed 的定位模拟模块。它支持地�
 
 本项目仅用于合法测试、应用调试以及设备所有者明确授权的场景。
 
+> **发布方式说明：** 自 `1.2.0` 起，仅发布签名 APK、版本说明和必要文档，不再公开或同步后续版本源代码。仓库中既有开源内容及引用的第三方代码仍按各自原许可证执行。
+
 ## 功能概览
 
 - 支持 LSPosed 中选定的作用应用提供配置的模拟位置。
@@ -46,16 +48,13 @@ LocusMimic·位置模拟 是一款LSPosed 的定位模拟模块。它支持地�
 
 ## 隐私与外部控制
 
-地图显示和地点搜索通过百度地图 JavaScript API 提供，因此会产生与地图服务相关的网络请求。
+地图显示、地点搜索和地址解析由当前选择的 OpenStreetMap、百度、高德或 Google 地图服务提供，因此会产生与对应服务相关的网络请求。
 
 “允许外部广播控制”默认关闭。开启后，任何已安装应用或 `adb shell` 都可通过 Intent 开始/停止模拟或设置坐标；仅在你明确需要本地自动化时开启。接口与安全边界见 [docs/EXTERNAL_CONTROL.md](docs/EXTERNAL_CONTROL.md)。
 
-## 发布与贡献
+## 发布与反馈
 
-- [发布说明](docs/PUBLISHING.md)
-- [发布流程](docs/RELEASE_PROCESS.md)
 - [变更记录](更新日志.md)
-- [贡献说明](CONTRIBUTING.md)
 - [上游改造说明](docs/FORK_CHANGES.md)
 - [Telegram 频道](https://t.me/LocusMimic)
 
@@ -75,11 +74,13 @@ LocusMimic·位置模拟 是一款LSPosed 的定位模拟模块。它支持地�
 
 LocusMimic is an Android location-simulation module for rooted devices using Xposed/LSPosed. It provides map selection, place search, favourites, configurable location parameters, and scoped simulated locations for selected apps. It is maintained as a personal fork of [XposedFakeLocation](https://github.com/noobexon1/XposedFakeLocation) and [HideMockLocation](https://github.com/auag0/HideMockLocation).
 
+> **Distribution notice:** Starting with `1.2.0`, releases provide signed APKs, release notes, and essential documentation only. Source code for subsequent versions is not published. Previously published open-source content and third-party code remain subject to their original licenses.
+
 ### Features
 
 - Provides configured simulated locations to selected LSPosed app scopes.
 - Supports map selection, place search, favourite locations, and current-location positioning.
-- Supports a user-provided Baidu Maps browser-side JavaScript API AK.
+- Uses OpenStreetMap by default and supports user-provided Baidu, Amap, and Google Maps credentials.
 - Supports configurable latitude, longitude, accuracy, altitude, speed, and random offset parameters.
 - Provides three location modes: Application Hook, System Hook, and Mock Provider.
 
@@ -93,9 +94,9 @@ Approximately 99% of this project was implemented with AI assistance. The mainta
 - **System Hook** — Root and LSPosed/Xposed are required. Use only when testing system-framework or phone-service location paths.
 - **Mock Provider** — No Root or LSPosed is needed, but Android developer options must authorize LocusMimic as the mock-location app. Android will mark the location as mocked.
 
-Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. Supported ABIs are `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64`.
+Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. The current APK supports `arm64-v8a`.
 
-Download releases from the [Xposed Modules Repo](https://github.com/Xposed-Modules-Repo/com.locusmimic.app/). Maintainers can refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for release and signing instructions.
+Download releases from the [Xposed Modules Repo](https://github.com/Xposed-Modules-Repo/com.locusmimic.app/).
 
 Project updates and discussion: [Telegram channel](https://t.me/LocusMimic).
 

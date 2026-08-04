@@ -94,7 +94,7 @@ Approximately 99% of this project was implemented with AI assistance. The mainta
 - **System Hook** — Root and LSPosed/Xposed are required. Use only when testing system-framework or phone-service location paths.
 - **Mock Provider** — No Root or LSPosed is needed, but Android developer options must authorize LocusMimic as the mock-location app. Android will mark the location as mocked.
 
-Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. Supported ABIs are `armeabi-v7a`, `arm64-v8a`, `x86`, and `x86_64`.
+Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. The current APK supports `arm64-v8a`.
 
 Download releases from [GitHub Releases](https://github.com/wchunlin1006/LocusMimic/releases/latest). Maintainers can refer to [docs/PUBLISHING.md](docs/PUBLISHING.md) for release and signing instructions.
 

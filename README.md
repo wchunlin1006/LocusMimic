@@ -20,7 +20,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 ## 应用界面与功能概览
 
 <p align="center">
-  <img src="docs/images/haibao.png" alt="LocusMimic 应用界面与功能概览" width="58%" />
+  <img src="docs/images/locusmimic-poster.png" alt="LocusMimic 应用界面与功能概览" width="58%" />
 </p>
 
 ## 开发说明

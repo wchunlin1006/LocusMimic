@@ -49,3 +49,7 @@ app/google-services.json
 build-install.bat
 
 /.vscode
+
+# === Local QA output ===
+/artifacts/
+/qa/location-probe/build/

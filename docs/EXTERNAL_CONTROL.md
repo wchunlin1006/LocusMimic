@@ -34,35 +34,55 @@ All writes go through the same `PreferencesRepository` the in-app UI uses, so th
 
 ## Testing with adb
 
+Android's stock `am` command can send strings, integers, longs, floats, and
+booleans, but it has no double extra option. LocusMimic intentionally expects
+`latitude` and `longitude` as `Double` values. Therefore:
+
+- `START` without coordinates and `STOP` work directly from `adb shell`.
+- Do not use the previously documented `--ed` option. It does not exist on
+  Android 12, and `--ef` creates a `Float`, not a `Double`.
+- To set coordinates, use a real Android caller such as the Kotlin example
+  below, or the repository's `qa/location-probe` helper activity.
+
 ```sh
 # Start faking using whatever location was last set
 adb shell am broadcast \
   -a com.locusmimic.app.action.START \
   -n com.locusmimic.app/.manager.control.ControlReceiver
 
-# Start faking at a specific location
-adb shell am broadcast \
-  -a com.locusmimic.app.action.START \
-  -n com.locusmimic.app/.manager.control.ControlReceiver \
-  --ed latitude 37.7749 --ed longitude -122.4194
-
-# Set location only (does not start)
-adb shell am broadcast \
-  -a com.locusmimic.app.action.SET_LOCATION \
-  -n com.locusmimic.app/.manager.control.ControlReceiver \
-  --ed latitude 48.8566 --ed longitude 2.3522 --ef accuracy 5.0
-
-# Set location and immediately start
-adb shell am broadcast \
-  -a com.locusmimic.app.action.SET_LOCATION \
-  -n com.locusmimic.app/.manager.control.ControlReceiver \
-  --ed latitude 48.8566 --ed longitude 2.3522 --ez start true
-
 # Stop faking
 adb shell am broadcast \
   -a com.locusmimic.app.action.STOP \
   -n com.locusmimic.app/.manager.control.ControlReceiver
 ```
+
+After building and installing `qa/location-probe`, these commands convert
+string arguments into correctly typed extras before sending the broadcast:
+
+```sh
+# Set location only
+adb shell am force-stop qa.locationprobe
+adb shell am start -W \
+  -n qa.locationprobe/.ControlActivity \
+  --es command set \
+  --es latitude 48.8566 \
+  --es longitude 2.3522 \
+  --es accuracy 5.0
+
+# Set location and immediately start
+adb shell am force-stop qa.locationprobe
+adb shell am start -W \
+  -n qa.locationprobe/.ControlActivity \
+  --es command set \
+  --es latitude 48.8566 \
+  --es longitude 2.3522 \
+  --es start true
+```
+
+Some MIUI/HyperOS builds block a background app from waking another package.
+If Logcat reports `WakePathChecker` or `process is not permitted to wake path`,
+allow background auto-start for the caller and LocusMimic, or keep
+LocusMimic's process active while testing.
 
 ## Caller snippet (Kotlin)
 

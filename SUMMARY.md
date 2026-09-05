@@ -1,1 +1,1 @@
-LocusMimic is an Android 11+ Xposed/LSPosed module for rooted devices. It supports location simulation, route planning, route simulation, and per-app compatibility profiles for selected LSPosed scopes.
+LocusMimic is an Android 11+ location-testing tool with location and route simulation, app scopes, runtime modes, map services, and per-app compatibility profiles. Root and LSPosed features are used only by the selected mode.

@@ -10,10 +10,10 @@ LocusMimic is a personal-maintenance fork based on [noobexon1/XposedFakeLocation
 
 ## Product changes
 
-- Reimplemented the manager with a simpler, more modern map-first UI for search, favourites, current location, location parameters and selected-app management.
-- Replaced the map service with Baidu Map Web, providing map selection and place search.
-- Integrated selected implementation characteristics from HideMockLocation to improve location-simulation concealment in some apps with stronger mock-location detection.
-- Provides mutually exclusive Application Hook, System Hook and Mock Provider modes.
+- Reimplemented the manager with a map-first UI for search, favourites, current location, location parameters, path simulation and selected-app management.
+- Added managed and user-provided map-service options for map display, search, geocoding and route planning.
+- Added a V2 entitlement and recovery flow, including trial, subscription, email binding and device-recovery support.
+- Provides Application, System, Root and Mock Provider modes, subject to the permissions required by each mode.
 
 ## Distribution boundary
 

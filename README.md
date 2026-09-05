@@ -2,7 +2,7 @@
 
 [English below](#english)
 
-LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPosed 定位模拟模块。它支持地图选点、地点搜索、常用地点收藏、位置参数配置，并可向用户在 LSPosed 中选择的目标应用提供模拟位置。
+LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调测工具。它支持地图选点、地点搜索、常用地点收藏、位置参数配置、位置与路径模拟，并可按所选运行模式向目标应用或系统定位链路提供测试位置。
 
 本项目在 [noobexon1/XposedFakeLocation](https://github.com/noobexon1/XposedFakeLocation) 和 [auag0/HideMockLocation](https://github.com/auag0/HideMockLocation) 基础上继续改造，以满足个人需求
 
@@ -10,11 +10,11 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 ## 功能概览
 
-- 支持 LSPosed 中选定的作用应用提供配置的模拟位置。
+- 支持按应用作用域、系统模式、Root 模式或 Mock Provider 模式执行定位测试。
 - 支持多路点路径规划、自动或摇杆路径模拟、暂停、循环及路径收藏。
 - 支持地图选点、地点搜索、收藏地点和当前位置定位等功能。
 - 支持对每个 Hook 应用独立设置坐标系、路径模拟方案与步频策略。
-- 支持自定义百度、高德、Google地图凭证，可使用自己申请的地图。
+- 支持受管理地图服务及用户自有地图凭证。
 - 支持可配置经纬度、精度、海拔、速度与随机偏移等位置参数。
 - 支持三种定位模式：应用 Hook、系统 Hook 与 Mock Provider。
 
@@ -32,15 +32,16 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 | 模式 | 适用场景 | 要求 |
 | --- | --- | --- |
-| 应用 Hook | 只向 LSPosed 中选定的作用应用提供位置 | Root、LSPosed/Xposed，并启用模块及目标作用域 |
-| 系统 Hook | 测试系统框架或电话服务相关的位置链路 | Root、LSPosed/Xposed；仅在确有测试需要时选择系统框架或电话服务 |
+| 应用模式 | 向选定的 LSPosed 作用域提供测试位置 | Root、LSPosed/Xposed，并启用模块及目标作用域 |
+| 系统模式 | 测试系统定位链路 | Root、LSPosed/Xposed；仅在确有测试需要时启用 |
+| Root 模式 | 通过 Root 服务执行定位测试 | Root 授权 |
 | Mock Provider | 不使用 Root/LSPosed 的本地模拟备用方式 | Android 开发者选项中授予模拟位置信息应用权限；系统会标记模拟位置 |
 
 三种模式同一时间只能启用一种，切换模式后建议重启设备。请只选择测试所需的最小作用域，避免勾选无关应用或系统组件。
 
 ## 安装与使用
 
-1. 从 [GitHub Releases](https://github.com/Xposed-Modules-Repo/com.locusmimic.app/releases/latest) 下载与版本对应的 APK 并安装。
+1. 从 [GitHub Releases](https://github.com/wchunlin1006/LocusMimic/releases/latest) 或 [LSPosed 模块仓库](https://github.com/Xposed-Modules-Repo/com.locusmimic.app/releases/latest) 下载与版本对应的 APK 并安装。
 2. 使用应用 Hook 或系统 Hook 时，在 LSPosed 中启用 LocusMimic，并仅勾选需要测试的作用域。
 3. 打开 LocusMimic，在地图上选点或通过搜索选择位置；按需调整位置参数。
 4. 选择一种工作模式后点击“开始模拟”。
@@ -48,7 +49,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 ## 隐私与外部控制
 
-地图显示和地点搜索通过百度地图 JavaScript API 提供，因此会产生与地图服务相关的网络请求。
+地图显示、地点搜索、地址解析与路径规划会产生与所选地图服务相关的网络请求。请遵循相应地图服务的规则，并避免提交不必要的个人信息。
 
 “允许外部广播控制”默认关闭。开启后，任何已安装应用或 `adb shell` 都可通过 Intent 开始/停止模拟或设置坐标；仅在你明确需要本地自动化时开启。接口与安全边界见 [docs/EXTERNAL_CONTROL.md](docs/EXTERNAL_CONTROL.md)。
 
@@ -56,6 +57,7 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 - [发布说明](docs/PUBLISHING.md)
 - [发布流程](docs/RELEASE_PROCESS.md)
+- [2.0.0 发布说明](docs/RELEASE_NOTES_2.0.0.md)
 - [变更记录](更新日志.md)
 - [贡献说明](CONTRIBUTING.md)
 - [上游改造说明](docs/FORK_CHANGES.md)
@@ -75,15 +77,15 @@ LocusMimic·位置模拟 是一款面向已 Root Android 设备的 Xposed/LSPose
 
 ## English
 
-LocusMimic is an Android location-simulation module for rooted devices using Xposed/LSPosed. It provides map selection, place search, favourites, configurable location parameters, and scoped simulated locations for selected apps. It is maintained as a personal fork of [XposedFakeLocation](https://github.com/noobexon1/XposedFakeLocation) and [HideMockLocation](https://github.com/auag0/HideMockLocation).
+LocusMimic is an Android 11+ location-testing tool. It provides map selection, place search, favourites, configurable location parameters, location and route simulation, and mode-dependent testing output for app scopes or system location paths. It is maintained as a personal fork of [XposedFakeLocation](https://github.com/noobexon1/XposedFakeLocation) and [HideMockLocation](https://github.com/auag0/HideMockLocation).
 
 ### Features
 
-- Provides configured simulated locations to selected LSPosed app scopes.
+- Supports app-scope, system, Root, and Mock Provider modes according to the selected setup.
 - Supports multi-waypoint route planning, automatic or joystick route simulation, pause, loop, and route favourites.
 - Supports map selection, place search, favourite locations, and current-location positioning.
 - Supports per-app coordinate systems, route-simulation profiles, and cadence strategies.
-- Supports a user-provided Baidu Maps browser-side JavaScript API AK.
+- Supports managed map services and user-provided map credentials.
 - Supports configurable latitude, longitude, accuracy, altitude, speed, and random offset parameters.
 - Provides three location modes: Application Hook, System Hook, and Mock Provider.
 

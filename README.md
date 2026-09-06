@@ -57,7 +57,7 @@ LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调�
 
 - [发布说明](docs/PUBLISHING.md)
 - [发布流程](docs/RELEASE_PROCESS.md)
-- [2.0.1 发布说明](docs/RELEASE_NOTES_2.0.1.md)
+- [2.0.2 发布说明](docs/RELEASE_NOTES_2.0.2.md)
 - [变更记录](更新日志.md)
 - [贡献说明](CONTRIBUTING.md)
 - [上游改造说明](docs/FORK_CHANGES.md)

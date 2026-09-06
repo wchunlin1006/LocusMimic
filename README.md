@@ -16,7 +16,7 @@ LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调�
 - 支持对每个 Hook 应用独立设置坐标系、路径模拟方案与步频策略。
 - 支持受管理地图服务及用户自有地图凭证。
 - 支持可配置经纬度、精度、海拔、速度与随机偏移等位置参数。
-- 支持三种定位模式：应用 Hook、系统 Hook 与 Mock Provider。
+- 支持四种定位模式：Hook模式、系统模式、Root模式 与 Mock Provider。
 
 ## 应用界面与功能概览
 
@@ -57,7 +57,7 @@ LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调�
 
 - [发布说明](docs/PUBLISHING.md)
 - [发布流程](docs/RELEASE_PROCESS.md)
-- [2.0.0 发布说明](docs/RELEASE_NOTES_2.0.0.md)
+- [2.0.1 发布说明](docs/RELEASE_NOTES_2.0.1.md)
 - [变更记录](更新日志.md)
 - [贡献说明](CONTRIBUTING.md)
 - [上游改造说明](docs/FORK_CHANGES.md)

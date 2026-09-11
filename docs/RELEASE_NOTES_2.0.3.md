@@ -36,6 +36,6 @@
 | APK | `LocusMimic-2.0.3-20260911.apk` |
 | packageName | `com.locusmimic.app` |
 | versionName / versionCode | `2.0.3` / `20003` |
-| SHA-256 | `360daac4b9200b3c0b468c9713cb6f42c1ad0772f1d27923273e1f9b18b1fdc3` |
+| SHA-256 | `e5b399055fc0ae12a288b283ee97527b211d5a6e88fbd616af0232f0fa0559aa` |
 
 下载后请先核对 SHA-256，再安装 APK。请勿从非官方镜像或来源不明的转发链接下载。

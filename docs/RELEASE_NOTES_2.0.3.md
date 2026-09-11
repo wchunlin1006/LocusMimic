@@ -1,4 +1,4 @@
-# LocusMimic 2.0.3
+# LocusMimic 2.0.3——功能与稳定性增强
 
 标签：`20003-2.0.3`
 
@@ -33,6 +33,6 @@
 | APK | `LocusMimic-2.0.3-20260911.apk` |
 | packageName | `com.locusmimic.app` |
 | versionName / versionCode | `2.0.3` / `20003` |
-| SHA-256 | `35abe82fb50b5bc65763eeb0b42403b2dfa8f447a68688900864bce9ecb1959b` |
+| SHA-256 | `c723b1ddf494b6ecf747c536aad3460caf4300e30f96db5991de8a32579616e7` |
 
 下载后请先核对 SHA-256，再安装 APK。请勿从非官方镜像或来源不明的转发链接下载。

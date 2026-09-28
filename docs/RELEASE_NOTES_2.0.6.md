@@ -20,14 +20,15 @@ LocusMimic 2.0.6 面向 Android 11（API 30）及以上的 `arm64-v8a` 设备。
 ## 修复
 
 - 修复权益状态、绑定数量及设备记录未及时刷新的问题。
+- 修复高德标准地图可能不显示建筑、道路及 POI 信息的问题。
 
 ## 附件校验
 
 | 项目 | 值 |
 | --- | --- |
-| APK | `LocusMimic-2.0.6-20260928.apk` |
+| APK | `LocusMimic-2.0.6-20260929.apk` |
 | packageName | `com.locusmimic.app` |
 | versionName / versionCode | `2.0.6` / `20006` |
-| SHA-256 | `6CA75A3671A2F29C2B2C292196A4A50D2E184EB89BDAB51C22E3B25D6A8CCF81` |
+| SHA-256 | `3318D122A70DFE1D6E5A922232D7F1395640C81091E026390CD14D597DE87E39` |
 
 下载后请先核对 SHA-256，再安装 APK。请勿从非官方镜像或来源不明的转发链接下载。

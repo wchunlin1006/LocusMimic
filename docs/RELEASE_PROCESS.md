@@ -4,8 +4,8 @@
 
 ## 1. 准备版本
 
-1. 确定语义化版本 `major.minor.patch`，例如 `1.0.0`。
-2. 计算 `versionCode = major * 10000 + minor * 100 + patch`；`1.0.0` 对应 `10000`。
+1. 确定对外版本，例如 `2.2.0` 或 `2.2.0-rc.12`；RC 版本应发布为预发布。
+2. 从最终签名 APK 核对实际 `versionName` 和安装代码 `versionCode`。安装代码必须高于已有公开版本，不能仅按版本名重算；兼容版本代码不等于安装代码。
 3. 更新 [更新日志.md](../更新日志.md) 的版本说明。
 4. 确认 `README.md`、`SUMMARY`、`SUMMARY.md`、`SOURCE_URL` 与实际能力一致。
 
@@ -23,6 +23,7 @@
 1. 将必要文档提交到独立的纯发布资料分支；不得提交源码。
 2. 创建标签：`versionCode-versionName`，例如 `10000-1.0.0`。
 3. 创建同名 GitHub Release，标题使用 `LocusMimic 1.0.0`。
+   RC Release 需启用预发布标记，不替换稳定版 Latest。
 4. 上传已验证的正式签名 APK，文件名保留构建输出的版本与日期。
 5. 下载 Release 附件再次安装或校验签名，确认附件未损坏。
 

@@ -32,7 +32,9 @@ git diff --cached --check
 
 ## 版本与 GitHub Release
 
-版本号由 `app/build.gradle.kts` 计算：`major.minor.patch` 映射为 `major * 10000 + minor * 100 + patch`。因此 `1.0.0` 的 `versionCode` 是 `10000`。
+对外版本名和安装代码以最终签名 APK 中的 `versionName`、`versionCode` 为准。安装代码可独立指定，并须高于已有公开版本；不要将兼容版本代码误作安装代码，也不能只改 APK 文件名。
+
+RC 版本发布为预发布，不替换稳定版 Latest。例如 `2.2.0-rc.12` 的本次安装代码为 `20202`，对应公开标签 `20202-2.2.0-rc.12`。
 
 LSPosed Release 标签固定采用：
 

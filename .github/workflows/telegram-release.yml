@@ -1,0 +1,208 @@
+name: Telegram Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Published release tag to check or resend
+        required: true
+        type: string
+      dry_run:
+        description: Check bot, channel, and attachments without posting
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-release-${{ github.event.release.tag_name || inputs.release_tag || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: github.repository == 'wchunlin1006/LocusMimic'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+    steps:
+      - name: Validate and announce release
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import os
+          import re
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          import uuid
+
+          REPOSITORY = os.environ['GITHUB_REPOSITORY']
+          TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
+          CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '').strip()
+          MAX_FILE_BYTES = 49_000_000
+
+          def request_json(url, data=None, headers=None):
+              request = urllib.request.Request(url, data=data, headers=headers or {})
+              try:
+                  with urllib.request.urlopen(request, timeout=90) as response:
+                      return json.load(response)
+              except urllib.error.HTTPError as error:
+                  raise RuntimeError(f'API request rejected (HTTP {error.code}); check permissions and configuration.') from None
+              except (urllib.error.URLError, TimeoutError):
+                  raise RuntimeError('API request timed out or could not connect; posting status may be uncertain.') from None
+
+          def github_release(tag):
+              encoded = urllib.parse.quote(tag, safe='')
+              return request_json(
+                  f'https://api.github.com/repos/{REPOSITORY}/releases/tags/{encoded}',
+                  headers={
+                      'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                      'Accept': 'application/vnd.github+json',
+                      'X-GitHub-Api-Version': '2022-11-28',
+                  },
+              )
+
+          def telegram(method, payload=None, body=None, content_type=None):
+              if body is None:
+                  body = json.dumps(payload or {}).encode('utf-8')
+                  content_type = 'application/json'
+              result = request_json(
+                  f'https://api.telegram.org/bot{TOKEN}/{method}',
+                  data=body,
+                  headers={'Content-Type': content_type},
+              )
+              if not result.get('ok'):
+                  raise RuntimeError('Telegram rejected the request; inspect bot and channel permissions.')
+              return result['result']
+
+          def text_chunks(text, limit=2000):
+              current = ''
+              for line in text.splitlines(keepends=True):
+                  while len(line) > limit:
+                      if current:
+                          yield current.rstrip()
+                          current = ''
+                      yield line[:limit]
+                      line = line[limit:]
+                  if len(current) + len(line) > limit:
+                      yield current.rstrip()
+                      current = ''
+                  current += line
+              if current.strip():
+                  yield current.rstrip()
+
+          def release_files(release):
+              files = []
+              for asset in release.get('assets', []):
+                  name = asset['name']
+                  if not (name.endswith(('.apk', '.sha256')) or name == 'SHA256SUMS.txt'):
+                      continue
+                  if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,200}', name):
+                      raise RuntimeError('Unsafe release attachment filename.')
+                  if not 0 < asset['size'] <= MAX_FILE_BYTES:
+                      raise RuntimeError(f'Attachment {name} exceeds the Telegram upload limit or is empty.')
+                  if asset.get('state') != 'uploaded':
+                      return []
+                  files.append(asset)
+              has_apk = any(item['name'].endswith('.apk') for item in files)
+              has_hash = any(item['name'].endswith('.sha256') or item['name'] == 'SHA256SUMS.txt' for item in files)
+              return files if has_apk and has_hash else []
+
+          def download(asset):
+              url = asset['browser_download_url']
+              if not url.startswith(f'https://github.com/{REPOSITORY}/releases/download/'):
+                  raise RuntimeError('Unexpected release attachment source.')
+              try:
+                  with urllib.request.urlopen(url, timeout=120) as response:
+                      data = response.read(MAX_FILE_BYTES + 1)
+              except (urllib.error.URLError, TimeoutError):
+                  raise RuntimeError('Release attachment download failed.') from None
+              if len(data) != asset['size'] or len(data) > MAX_FILE_BYTES:
+                  raise RuntimeError('Release attachment size mismatch.')
+              return data
+
+          def verify_checksums(files):
+              expected = {}
+              for name, data in files.items():
+                  if name.endswith('.sha256') or name == 'SHA256SUMS.txt':
+                      for line in data.decode('utf-8-sig').splitlines():
+                          match = re.fullmatch(r'([0-9a-fA-F]{64})\s+\*?([^/\\]+)', line.strip())
+                          if match:
+                              filename = match[2]
+                              digest = match[1].lower()
+                              if filename in expected and expected[filename] != digest:
+                                  raise RuntimeError('Conflicting release checksums.')
+                              expected[filename] = digest
+              for name, data in files.items():
+                  if name.endswith('.apk') and expected.get(name) != hashlib.sha256(data).hexdigest():
+                      raise RuntimeError(f'Attachment checksum missing or mismatched: {name}')
+
+          def send_document(name, data, caption):
+              boundary = 'LocusMimic' + uuid.uuid4().hex
+              parts = []
+              for key, value in [('chat_id', CHAT_ID), ('caption', caption[:450])]:
+                  parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
+              parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="{name}"\r\nContent-Type: application/octet-stream\r\n\r\n'.encode())
+              parts.extend([data, f'\r\n--{boundary}--\r\n'.encode()])
+              telegram('sendDocument', body=b''.join(parts), content_type=f'multipart/form-data; boundary={boundary}')
+
+          def main():
+              if not TOKEN or not CHAT_ID:
+                  raise RuntimeError('Configure TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in GitHub Actions Secrets.')
+              tag = os.environ['RELEASE_TAG'].strip()
+              if not re.fullmatch(r'[0-9]+-[0-9]+\.[0-9]+\.[0-9]+(?:-rc\.[0-9]+)?', tag):
+                  raise RuntimeError('Expected a versionCode-versionName release tag.')
+              release = None
+              for attempt in range(12):
+                  release = github_release(tag)
+                  if release['draft']:
+                      raise RuntimeError('Draft releases must not be announced.')
+                  assets = release_files(release)
+                  if assets:
+                      break
+                  if attempt < 11:
+                      time.sleep(5)
+              else:
+                  raise RuntimeError('Release APK and checksum assets are not ready; upload to a draft before publishing.')
+              files = {asset['name']: download(asset) for asset in assets}
+              verify_checksums(files)
+              bot = telegram('getMe')
+              chat = telegram('getChat', {'chat_id': CHAT_ID})
+              member = telegram('getChatMember', {'chat_id': CHAT_ID, 'user_id': bot['id']})
+              if chat['type'] != 'channel' or member['status'] not in ('administrator', 'creator'):
+                  raise RuntimeError('The destination must be a channel where the bot is an administrator.')
+              if member['status'] != 'creator' and not member.get('can_post_messages'):
+                  raise RuntimeError('The bot needs permission to post messages in the channel.')
+              dry_run = os.environ.get('DRY_RUN', 'false').lower() == 'true'
+              print(f'Validated {tag}, {len(files)} attachments, checksums, bot identity, and channel permissions.')
+              if dry_run:
+                  print('Dry run passed. No Telegram announcement or document was sent.')
+                  return
+              label = 'RC prerelease' if release['prerelease'] else 'Release'
+              notes = re.sub(r'(?m)^#{1,6}\s+', '', release.get('body') or '').strip()
+              text = f"{release['name'] or tag} [{label}]\n\n{notes}\n\nGitHub: {release['html_url']}"
+              for chunk in text_chunks(text):
+                  telegram('sendMessage', {'chat_id': CHAT_ID, 'text': chunk, 'link_preview_options': {'is_disabled': True}})
+                  time.sleep(1.1)
+              for name, data in files.items():
+                  send_document(name, data, f"{release['name'] or tag}\n{name}")
+                  time.sleep(1.1)
+              print('Telegram announcement and release attachments sent.')
+
+          if __name__ == '__main__':
+              try:
+                  main()
+              except Exception as error:
+                  message = str(error).replace(TOKEN, '[REDACTED]') if TOKEN else str(error)
+                  print(f'::error::{message}')
+                  raise SystemExit(1)

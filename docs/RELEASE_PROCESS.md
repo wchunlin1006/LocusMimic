@@ -29,6 +29,8 @@
 
 APK 必须来自已验证的本地正式签名构建，并作为 Release 附件上传。
 
+GitHub 主发布仓库已配置 [Telegram 自动通知](TELEGRAM_RELEASE.md)。请先创建草稿、上传完整 APK 和校验文件，最后发布；公开标签对应的提交须包含通知工作流。Release 发布后才会通知，普通推送不会发送公告。
+
 ## 4. 同步 LSPosed 模块仓库
 
 1. 首次发布时到 <https://modules.lsposed.org/submission/> 提交 `com.locusmimic.app`。

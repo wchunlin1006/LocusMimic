@@ -1,6 +1,5 @@
 import copy
 import hashlib
-import json
 import os
 from pathlib import Path
 import textwrap
@@ -31,26 +30,45 @@ class ReleaseNotificationTest(unittest.TestCase):
         os.environ.clear()
         os.environ.update(self.env)
 
-    def test_real_notes_are_formatted_and_complete(self):
-        payload = scope['rich_message'](self.release)
-        self.assertIn('# ', payload['markdown'])
-        self.assertIn('**', payload['markdown'])
-        self.assertEqual(payload['markdown'].count('![]('), 1)
-        self.assertEqual(payload['media'][0]['media']['media'], 'attach://apk')
-        self.assertGreater(len(payload['markdown']), 1024)
-        self.assertNotIn('format', payload)
+    def test_real_notes_are_formatted_summary_with_full_link(self):
+        caption = scope['release_caption'](self.release)
+        self.assertIn('<b>', caption)
+        self.assertNotIn('**', caption)
+        self.assertNotIn('## ', caption)
+        self.assertIn(self.release['html_url'], caption)
+        self.assertLessEqual(scope['displayed_length'](caption), 1024)
+        for heading in ('新增', '优化', '修复', '升级提醒'):
+            self.assertIn('<b>' + heading + '</b>', caption)
 
     def test_markup_is_safe(self):
         self.release['body'] = '<script>bad</script> & **bold**'
-        self.assertIn('&lt;script&gt;', scope['rich_message'](self.release)['markdown'])
+        self.assertIn('&lt;script&gt;', scope['release_caption'](self.release))
         self.release['body'] = '![](https://example.com/image.png)'
-        with self.assertRaises(RuntimeError):
-            scope['rich_message'](self.release)
+        self.assertNotIn('<img', scope['release_caption'](self.release))
 
-    def test_oversize_rejected_not_truncated(self):
-        self.release['body'] = 'a' * 32769
+    def test_oversize_entries_omitted_without_breaking_formatting(self):
+        self.release['body'] = '## Changes\n- **' + 'a' * 32769 + '**\n- Short entry'
+        caption = scope['release_caption'](self.release)
+        self.assertIn('Short entry', caption)
+        self.assertNotIn('a' * 100, caption)
+        self.assertLessEqual(scope['displayed_length'](caption), 1024)
+
+    def test_title_over_budget_is_rejected(self):
+        self.release['name'] = 'x' * 1100
         with self.assertRaises(RuntimeError):
-            scope['rich_message'](self.release)
+            scope['release_caption'](self.release)
+
+    def test_emoji_and_html_entities_count_visible_units(self):
+        self.assertEqual(scope['displayed_length']('<b>&lt;&amp;&#128512;</b>'), 4)
+
+    def test_unexpected_url_rejected(self):
+        self.release['html_url'] = 'https://example.com/release'
+        with self.assertRaises(RuntimeError):
+            scope['release_caption'](self.release)
+
+    def test_rc_is_labelled(self):
+        self.release['prerelease'] = True
+        self.assertIn('RC 预发布', scope['release_caption'](self.release))
 
     def run_main(self, dry=False, multiple=False, corrupt=False):
         apk = b'test-apk'
@@ -77,7 +95,7 @@ class ReleaseNotificationTest(unittest.TestCase):
             if method == 'getChatMember':
                 return {'status': 'administrator', 'can_post_messages': True}
             calls.append((method, kwargs))
-            return {'message_id': 1}
+            return {'message_id': 1, 'document': {'file_name': 'app.apk'}, 'caption': 'summary'}
 
         scope['telegram'] = telegram
         scope['main']()
@@ -87,13 +105,16 @@ class ReleaseNotificationTest(unittest.TestCase):
         calls = self.run_main()
         self.assertEqual(len(calls), 1)
         method, request = calls[0]
-        self.assertEqual(method, 'sendRichMessage')
+        self.assertEqual(method, 'sendDocument')
         body = request['body']
         self.assertIn(b'filename="app.apk"', body)
         self.assertNotIn(b'filename="SHA256SUMS.txt"', body)
         self.assertNotIn(b'filename="notes.md"', body)
-        rich = body.split(b'name="rich_message"\r\n\r\n')[1].split(b'\r\n--')[0]
-        self.assertEqual(json.loads(rich)['media'][0]['id'], 'apk')
+        self.assertIn(b'name="document"', body)
+        self.assertIn(b'name="parse_mode"\r\n\r\nHTML', body)
+        self.assertNotIn(b'rich_message', body)
+        caption = body.split(b'name="caption"\r\n\r\n')[1].split(b'\r\n--')[0].decode()
+        self.assertLessEqual(scope['displayed_length'](caption), 1024)
 
     def test_dry_run_posts_nothing(self):
         self.assertEqual(self.run_main(dry=True), [])

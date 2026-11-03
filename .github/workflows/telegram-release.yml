@@ -33,6 +33,8 @@ jobs:
       RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
     steps:
+      - name: Install Markdown parser
+        run: python -m pip install --disable-pip-version-check markdown-it-py==3.0.0
       - name: Validate and announce release
         shell: python
         run: |
@@ -46,6 +48,8 @@ jobs:
           import urllib.parse
           import urllib.request
           import uuid
+          from html.parser import HTMLParser
+          from markdown_it import MarkdownIt
 
           REPOSITORY = os.environ['GITHUB_REPOSITORY']
           TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
@@ -86,30 +90,90 @@ jobs:
                   raise RuntimeError('Telegram rejected the request; inspect bot and channel permissions.')
               return result['result']
 
-          def rich_message(release):
-              title = release.get('name') or release['tag_name']
-              title = re.sub(r'([\\`*_{}\[\]()#+.!|>~-])', r'\\\1', title)
-              notes = (release.get('body') or '').strip()
-              # Release notes are text, not additional Telegram media attachments.
-              if re.search(r'!\[|<\s*(?:media|img|video|audio)\b', notes, re.I):
-                  raise RuntimeError('Release notes contain embedded media; use text and links only.')
+          def displayed_length(markup):
+              class Text(HTMLParser):
+                  def __init__(self):
+                      super().__init__(convert_charrefs=True)
+                      self.parts = []
+
+                  def handle_data(self, data):
+                      self.parts.append(data)
+
+              parser = Text()
+              parser.feed(markup)
+              return len(''.join(parser.parts).encode('utf-16-le')) // 2
+
+          def inline_html(tokens):
+              result = []
+              for token in tokens or []:
+                  if token.type in ('text', 'html_inline'):
+                      result.append(html.escape(token.content))
+                  elif token.type == 'code_inline':
+                      result.append('<code>' + html.escape(token.content) + '</code>')
+                  elif token.type in ('strong_open', 'strong_close', 'em_open', 'em_close'):
+                      tag = 'b' if token.type.startswith('strong') else 'i'
+                      result.append('</' + tag + '>' if token.nesting < 0 else '<' + tag + '>')
+                  elif token.type == 'link_open':
+                      result.append('<a href="' + html.escape(token.attrGet('href'), quote=True) + '">')
+                  elif token.type == 'link_close':
+                      result.append('</a>')
+                  elif token.type in ('softbreak', 'hardbreak'):
+                      result.append(' ')
+                  elif token.type == 'image':
+                      result.append(html.escape(token.content))
+              return ''.join(result)
+
+          def release_caption(release):
               url = release['html_url']
               if not re.fullmatch(r'https://github\.com/' + re.escape(REPOSITORY) + r'/releases/tag/[A-Za-z0-9._-]+', url):
                   raise RuntimeError('Unexpected release page URL.')
-              label = 'RC prerelease' if release['prerelease'] else 'Release'
-              message = (
-                  '![](tg://document?id=apk)\n\n'
-                  f'**{title}** · {label}\n\n'
-                  f'{html.escape(notes, quote=False)}\n\n'
-                  f'[GitHub Release]({url})'
-              )
-              if len(message.encode('utf-16-le')) // 2 > 32768:
-                  raise RuntimeError('Release notes exceed the single rich-message limit; shorten them before retrying.')
-              return {
-                  'markdown': message,
-                  'media': [{'id': 'apk', 'media': {'type': 'document', 'media': 'attach://apk'}}],
-                  'skip_entity_detection': True,
-              }
+              title = html.escape(release.get('name') or release['tag_name'])
+              label = 'RC 预发布' if release['prerelease'] else '正式版'
+              header = f'<b>{title}</b> · {label}\n\n更新摘要\n'
+              footer = f'\n\n<a href="{url}">查看完整更新日志</a>'
+              sections = [{'title': '', 'items': []}]
+              depth = 0
+              heading = None
+              for token in MarkdownIt('commonmark', {'html': False}).parse(release.get('body') or ''):
+                  if token.type in ('bullet_list_open', 'ordered_list_open'):
+                      depth += 1
+                  elif token.type in ('bullet_list_close', 'ordered_list_close'):
+                      depth -= 1
+                  elif token.type == 'heading_open':
+                      heading = token.tag
+                  elif token.type == 'heading_close':
+                      heading = None
+                  elif token.type == 'inline':
+                      text = inline_html(token.children)
+                      if heading:
+                          if heading != 'h1':
+                              sections.append({'title': '<b>' + text + '</b>', 'items': []})
+                      elif depth <= 1 and text.strip():
+                          sections[-1]['items'].append(('• ' if depth else '') + text)
+
+              def compose(selected, omitted=False):
+                  body = []
+                  for section, items in zip(sections, selected):
+                      if items:
+                          body.append('\n'.join(([section['title']] if section['title'] else []) + items))
+                  return header + '\n\n'.join(body) + ('\n……部分条目已省略' if omitted else '') + footer
+
+              selected = [section['items'][:] for section in sections]
+              caption = compose(selected)
+              if displayed_length(caption) > 1024:
+                  # Keep complete entries and balance the summary across sections.
+                  selected = [[] for section in sections]
+                  for index in range(max((len(s['items']) for s in sections), default=0)):
+                      for section_index, section in enumerate(sections):
+                          if index >= len(section['items']):
+                              continue
+                          selected[section_index].append(section['items'][index])
+                          if displayed_length(compose(selected, True)) > 1024:
+                              selected[section_index].pop()
+                  caption = compose(selected, True)
+              if displayed_length(caption) > 1024:
+                  raise RuntimeError('Release title exceeds the Telegram caption budget.')
+              return caption
 
           def release_files(release):
               files = []
@@ -157,14 +221,17 @@ jobs:
                   if name.endswith('.apk') and expected.get(name) != hashlib.sha256(data).hexdigest():
                       raise RuntimeError(f'Attachment checksum missing or mismatched: {name}')
 
-          def send_release(name, data, message):
+          def send_release(name, data, caption):
               boundary = 'LocusMimic' + uuid.uuid4().hex
               parts = []
-              for key, value in [('chat_id', CHAT_ID), ('rich_message', json.dumps(message, ensure_ascii=False))]:
+              for key, value in [('chat_id', CHAT_ID), ('caption', caption), ('parse_mode', 'HTML')]:
                   parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
-              parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="apk"; filename="{name}"\r\nContent-Type: application/vnd.android.package-archive\r\n\r\n'.encode())
+              parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="{name}"\r\nContent-Type: application/vnd.android.package-archive\r\n\r\n'.encode())
               parts.extend([data, f'\r\n--{boundary}--\r\n'.encode()])
-              telegram('sendRichMessage', body=b''.join(parts), content_type=f'multipart/form-data; boundary={boundary}')
+              result = telegram('sendDocument', body=b''.join(parts), content_type=f'multipart/form-data; boundary={boundary}')
+              if not result.get('document') or not result.get('caption'):
+                  raise RuntimeError('Unexpected sent message shape; inspect the channel before any retry.')
+              print(f"Telegram document sent: message_id={result['message_id']}, caption_units={displayed_length(caption)}")
 
           def main():
               if not TOKEN or not CHAT_ID:
@@ -189,7 +256,7 @@ jobs:
               apks = {name: data for name, data in files.items() if name.endswith('.apk')}
               if len(apks) != 1:
                   raise RuntimeError('Expected exactly one APK per release; refusing to split the announcement.')
-              message = rich_message(release)
+              caption = release_caption(release)
               bot = telegram('getMe')
               chat = telegram('getChat', {'chat_id': CHAT_ID})
               member = telegram('getChatMember', {'chat_id': CHAT_ID, 'user_id': bot['id']})
@@ -203,8 +270,8 @@ jobs:
                   print('Dry run passed. No Telegram announcement or document was sent.')
                   return
               name, data = next(iter(apks.items()))
-              send_release(name, data, message)
-              print('Telegram single rich message sent: APK and formatted release notes.')
+              send_release(name, data, caption)
+              print('Telegram single document message sent: APK and HTML summary with full changelog link.')
 
           if __name__ == '__main__':
               try:

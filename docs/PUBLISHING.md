@@ -68,9 +68,9 @@ APK 必须使用你自己的正式签名。没有 `keystore.properties` 的本�
 
 GitHub Release 发布后，工作流只向频道发送 APK；校验和仍用于内部完整性校验，不作为 Telegram 附件发送。每个 Release 必须恰好包含一个 APK 和对应校验和。
 
-公告采用 Telegram `sendRichMessage`：APK 文档与完整 Release 正文合并为一条消息，标题、加粗、列表等由 Rich Markdown 渲染，而非以纯文本发送 Markdown 原文。不发送独立文字公告，不截断日志，也不自动降级为多条消息。日志不允许嵌入其他媒体。超长日志、多 APK 或 API 拒绝均报错，人工检查后再重试；网络超时先核对频道，避免重复发送。
+公告采用兼容手机和 PC 的普通 `sendDocument`：APK 与 HTML 格式的更新摘要合并为一条消息。摘要从 Release 正文提取顶层条目，不展示 Markdown 源码；嵌套细节省略，超长时按分组保留完整条目，显示省略提示，确保解析后不超过 1024。始终附完整日志链接，不修改 GitHub Release 原文，不发送独立文字公告，不发送其他媒体。多 APK 或 API 拒绝均报错，人工检查后再重试；网络超时先核对频道，避免重复发送。不使用手机已实测不兼容的 `sendRichMessage`。
 
-手动执行时 `dry_run=true` 只检查附件、校验和和频道权限，不发布消息。离线回归：`python .github/tests/test_telegram_release.py`。频道内的最终样式仍需真实发送验收。
+手动执行时 `dry_run=true` 只检查附件、校验和和频道权限，不发布消息。离线回归先安装 `markdown-it-py==3.0.0`，再执行 `python .github/tests/test_telegram_release.py`。频道内的最终样式仍需真实发送验收。补发旧版本时使用默认分支的最新工作流，不移动已公开的资料标签。
 
 APK 只在本地可信环境构建和签名。发布前验证包名、`versionCode`、`versionName`、签名证书和 SHA-256，并将 APK 与校验和作为同名 GitHub Release 附件上传。不得通过公开仓库恢复源码构建流程，也不得上传签名密钥或服务端配置。
 

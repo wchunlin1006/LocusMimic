@@ -64,6 +64,14 @@ APK 必须使用你自己的正式签名。没有 `keystore.properties` 的本�
 
 ## APK Release 附件
 
+### Telegram 自动公告
+
+GitHub Release 发布后，工作流只向频道发送 APK；校验和仍用于内部完整性校验，不作为 Telegram 附件发送。每个 Release 必须恰好包含一个 APK 和对应校验和。
+
+公告采用 Telegram `sendRichMessage`：APK 文档与完整 Release 正文合并为一条消息，标题、加粗、列表等由 Rich Markdown 渲染，而非以纯文本发送 Markdown 原文。不发送独立文字公告，不截断日志，也不自动降级为多条消息。日志不允许嵌入其他媒体。超长日志、多 APK 或 API 拒绝均报错，人工检查后再重试；网络超时先核对频道，避免重复发送。
+
+手动执行时 `dry_run=true` 只检查附件、校验和和频道权限，不发布消息。离线回归：`python .github/tests/test_telegram_release.py`。频道内的最终样式仍需真实发送验收。
+
 APK 只在本地可信环境构建和签名。发布前验证包名、`versionCode`、`versionName`、签名证书和 SHA-256，并将 APK 与校验和作为同名 GitHub Release 附件上传。不得通过公开仓库恢复源码构建流程，也不得上传签名密钥或服务端配置。
 
 ## 提交 LSPosed 模块仓库

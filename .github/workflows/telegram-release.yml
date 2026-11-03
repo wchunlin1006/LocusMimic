@@ -37,6 +37,7 @@ jobs:
         shell: python
         run: |
           import hashlib
+          import html
           import json
           import os
           import re
@@ -85,21 +86,30 @@ jobs:
                   raise RuntimeError('Telegram rejected the request; inspect bot and channel permissions.')
               return result['result']
 
-          def text_chunks(text, limit=2000):
-              current = ''
-              for line in text.splitlines(keepends=True):
-                  while len(line) > limit:
-                      if current:
-                          yield current.rstrip()
-                          current = ''
-                      yield line[:limit]
-                      line = line[limit:]
-                  if len(current) + len(line) > limit:
-                      yield current.rstrip()
-                      current = ''
-                  current += line
-              if current.strip():
-                  yield current.rstrip()
+          def rich_message(release):
+              title = release.get('name') or release['tag_name']
+              title = re.sub(r'([\\`*_{}\[\]()#+.!|>~-])', r'\\\1', title)
+              notes = (release.get('body') or '').strip()
+              # Release notes are text, not additional Telegram media attachments.
+              if re.search(r'!\[|<\s*(?:media|img|video|audio)\b', notes, re.I):
+                  raise RuntimeError('Release notes contain embedded media; use text and links only.')
+              url = release['html_url']
+              if not re.fullmatch(r'https://github\.com/' + re.escape(REPOSITORY) + r'/releases/tag/[A-Za-z0-9._-]+', url):
+                  raise RuntimeError('Unexpected release page URL.')
+              label = 'RC prerelease' if release['prerelease'] else 'Release'
+              message = (
+                  '![](tg://document?id=apk)\n\n'
+                  f'**{title}** · {label}\n\n'
+                  f'{html.escape(notes, quote=False)}\n\n'
+                  f'[GitHub Release]({url})'
+              )
+              if len(message.encode('utf-16-le')) // 2 > 32768:
+                  raise RuntimeError('Release notes exceed the single rich-message limit; shorten them before retrying.')
+              return {
+                  'markdown': message,
+                  'media': [{'id': 'apk', 'media': {'type': 'document', 'media': 'attach://apk'}}],
+                  'skip_entity_detection': True,
+              }
 
           def release_files(release):
               files = []
@@ -147,14 +157,14 @@ jobs:
                   if name.endswith('.apk') and expected.get(name) != hashlib.sha256(data).hexdigest():
                       raise RuntimeError(f'Attachment checksum missing or mismatched: {name}')
 
-          def send_document(name, data, caption):
+          def send_release(name, data, message):
               boundary = 'LocusMimic' + uuid.uuid4().hex
               parts = []
-              for key, value in [('chat_id', CHAT_ID), ('caption', caption[:450])]:
+              for key, value in [('chat_id', CHAT_ID), ('rich_message', json.dumps(message, ensure_ascii=False))]:
                   parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'.encode())
-              parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="{name}"\r\nContent-Type: application/octet-stream\r\n\r\n'.encode())
+              parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="apk"; filename="{name}"\r\nContent-Type: application/vnd.android.package-archive\r\n\r\n'.encode())
               parts.extend([data, f'\r\n--{boundary}--\r\n'.encode()])
-              telegram('sendDocument', body=b''.join(parts), content_type=f'multipart/form-data; boundary={boundary}')
+              telegram('sendRichMessage', body=b''.join(parts), content_type=f'multipart/form-data; boundary={boundary}')
 
           def main():
               if not TOKEN or not CHAT_ID:
@@ -176,6 +186,10 @@ jobs:
                   raise RuntimeError('Release APK and checksum assets are not ready; upload to a draft before publishing.')
               files = {asset['name']: download(asset) for asset in assets}
               verify_checksums(files)
+              apks = {name: data for name, data in files.items() if name.endswith('.apk')}
+              if len(apks) != 1:
+                  raise RuntimeError('Expected exactly one APK per release; refusing to split the announcement.')
+              message = rich_message(release)
               bot = telegram('getMe')
               chat = telegram('getChat', {'chat_id': CHAT_ID})
               member = telegram('getChatMember', {'chat_id': CHAT_ID, 'user_id': bot['id']})
@@ -184,20 +198,13 @@ jobs:
               if member['status'] != 'creator' and not member.get('can_post_messages'):
                   raise RuntimeError('The bot needs permission to post messages in the channel.')
               dry_run = os.environ.get('DRY_RUN', 'false').lower() == 'true'
-              print(f'Validated {tag}, {len(files)} attachments, checksums, bot identity, and channel permissions.')
+              print(f'Validated {tag}, one outgoing APK, formatted release notes, checksums, bot identity, and channel permissions.')
               if dry_run:
                   print('Dry run passed. No Telegram announcement or document was sent.')
                   return
-              label = 'RC prerelease' if release['prerelease'] else 'Release'
-              notes = re.sub(r'(?m)^#{1,6}\s+', '', release.get('body') or '').strip()
-              text = f"{release['name'] or tag} [{label}]\n\n{notes}\n\nGitHub: {release['html_url']}"
-              for chunk in text_chunks(text):
-                  telegram('sendMessage', {'chat_id': CHAT_ID, 'text': chunk, 'link_preview_options': {'is_disabled': True}})
-                  time.sleep(1.1)
-              for name, data in files.items():
-                  send_document(name, data, f"{release['name'] or tag}\n{name}")
-                  time.sleep(1.1)
-              print('Telegram announcement and release attachments sent.')
+              name, data = next(iter(apks.items()))
+              send_release(name, data, message)
+              print('Telegram single rich message sent: APK and formatted release notes.')
 
           if __name__ == '__main__':
               try:

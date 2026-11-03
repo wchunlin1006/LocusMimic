@@ -12,6 +12,9 @@ LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调�
 
 - 支持按应用作用域、系统模式、Root 模式或 Mock Provider 模式执行定位测试。
 - 支持多路点路径规划、自动或摇杆路径模拟、暂停、循环及路径收藏。
+- 支持实时真实路径跟随、路径采集、自然速度变化、跑道不规则度及地图方向跟随。
+- 支持 Hook 模式下的 4G/5G 基站模拟、环境扫描、地图匹配、数据库导入与模板管理。
+- 支持按指定应用或 Activity 及每日时间范围配置自动启停。
 - 支持地图选点、地点搜索、收藏地点和当前位置定位等功能。
 - 支持对每个 Hook 应用独立设置坐标系、路径模拟方案与步频策略。
 - 支持受管理地图服务及用户自有地图凭证。
@@ -37,7 +40,7 @@ LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调�
 | Root 模式 | 通过 Root 服务执行定位测试 | Root 授权 |
 | Mock Provider | 不使用 Root/LSPosed 的本地模拟备用方式 | Android 开发者选项中授予模拟位置信息应用权限；系统会标记模拟位置 |
 
-三种模式同一时间只能启用一种，切换模式后建议重启设备。请只选择测试所需的最小作用域，避免勾选无关应用或系统组件。
+四种模式同一时间只能启用一种，切换模式后建议重启设备。请只选择测试所需的最小作用域，避免勾选无关应用或系统组件。基站模拟当前仅支持 Hook 模式；其他能力受所选模式、授权和必要权限限制。
 
 ## 安装与使用
 
@@ -57,6 +60,8 @@ LocusMimic·位置模拟 是一款面向 Android 11 及以上设备的定位调�
 
 - [发布说明](docs/PUBLISHING.md)
 - [发布流程](docs/RELEASE_PROCESS.md)
+- [2.3.0 发布说明（正式版）](docs/RELEASE_NOTES_2.3.0.md)
+- [2.3.0-rc.1 发布说明（RC 预发布）](docs/RELEASE_NOTES_2.3.0-rc.1.md)
 - [2.2.1-rc.1 发布说明（RC 预发布）](docs/RELEASE_NOTES_2.2.1-rc.1.md)
 - [2.2.0-rc.13 发布说明（RC 预发布）](docs/RELEASE_NOTES_2.2.0-rc.13.md)
 - [2.2.0-rc.12 发布说明（RC 预发布）](docs/RELEASE_NOTES_2.2.0-rc.12.md)
@@ -96,7 +101,10 @@ LocusMimic is an Android 11+ location-testing tool. It provides map selection, p
 - Supports per-app coordinate systems, route-simulation profiles, and cadence strategies.
 - Supports managed map services and user-provided map credentials.
 - Supports configurable latitude, longitude, accuracy, altitude, speed, and random offset parameters.
-- Provides three location modes: Application Hook, System Hook, and Mock Provider.
+- Provides four location modes: Application Hook, System Hook, Root, and Mock Provider.
+- Supports real-route following and collection, natural speed changes, track irregularity, and heading-following maps.
+- Supports 4G/5G cellular simulation in Hook mode, environment scanning, map matching, database imports, and reusable templates.
+- Supports automatic start/stop rules for selected applications or activities and daily time windows, subject to authorization and required permissions.
 
 ### Development disclosure
 
@@ -106,6 +114,7 @@ Approximately 99% of this project was implemented with AI assistance. The mainta
 
 - **Application Hook** — Root and LSPosed/Xposed are required. Simulated locations are supplied only to the selected app scopes.
 - **System Hook** — Root and LSPosed/Xposed are required. Use only when testing system-framework or phone-service location paths.
+- **Root** — Root authorization is required; availability depends on the device and selected capabilities.
 - **Mock Provider** — No Root or LSPosed is needed, but Android developer options must authorize LocusMimic as the mock-location app. Android will mark the location as mocked.
 
 Only one mode can be active at a time. Restarting the device after switching modes is recommended. Android 11 (API 30) or newer is required. The current APK supports `arm64-v8a`.

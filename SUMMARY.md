@@ -1,1 +1,1 @@
-LocusMimic is an Android 11+ location-testing tool with location and route simulation, app scopes, runtime modes, map services, and per-app compatibility profiles. Root and LSPosed features are used only by the selected mode.
+LocusMimic is an Android 11+ testing tool with location and route simulation, real-route following and collection, cellular simulation, automatic start/stop, and per-app compatibility profiles. Availability depends on runtime mode, authorization, and required permissions.
